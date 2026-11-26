@@ -96,19 +96,20 @@ const admin = {
       return;
     }
 
+    const logoutSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
     const isSuper = this.user.roles.includes('SuperAdmin');
     root.innerHTML = `
       <div class="mobile-header">
         <div style="display:flex;align-items:center;gap:8px;font-weight:800;"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /> Mudgal Biology Admin</div>
-        <div style="display:flex;gap:6px;">
-          <button class="hamburger" style="background:rgba(239,68,68,.28);" onclick="admin.logout()">🚪 Logout</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-logout" style="padding:7px 11px;font-size:.78rem;" onclick="admin.logout()">${logoutSvg}<span>Logout</span></button>
           <button class="hamburger" onclick="admin.toggleMenu()">☰ Menu</button>
         </div>
       </div>
       <div id="adminBackdrop" class="backdrop" onclick="admin.toggleMenu()"></div>
       <div class="admin-shell">
         <aside id="adminSide" class="side">
-          <div class="brand"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">${this.user.roles.join(', ')}</div></div></div>
+          <div class="brand"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">Admin Console</div></div></div>
           <button class="${this.tab==='dashboard'?'active':''}" onclick="admin.navigate('dashboard')">📊 Dashboard &amp; Students</button>
           <button class="${this.tab==='catalogue'?'active':''}" onclick="admin.navigate('catalogue')">📚 Courses &amp; Curriculum</button>
           <button class="${this.tab==='tests'?'active':''}" onclick="admin.navigate('tests')">📝 Mock Tests &amp; Live</button>
@@ -119,7 +120,11 @@ const admin = {
           <a href="/about">ℹ️ About Us</a>
           <a href="/privacy">🔒 Privacy Policy</a>
           <div style="margin-top:auto;padding-top:14px;">
-            <button class="btn btn-amber" style="width:100%;color:var(--navy);justify-content:center;" onclick="admin.logout()">🚪 Sign Out (${this.user.fullName})</button>
+            <div class="side-user-box">
+              <div class="side-user-name">${this.user.fullName}</div>
+              <div class="side-user-role">${this.user.roles.join(' &bull; ')}</div>
+            </div>
+            <button class="btn-logout" style="width:100%;" onclick="admin.logout()">${logoutSvg}<span>Sign Out</span></button>
           </div>
         </aside>
         <main class="content" id="admMain"><div class="card">Loading...</div></main>
@@ -208,7 +213,7 @@ const admin = {
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="admin.exportCsv()">⬇ Export Orders CSV</button>
           <button class="btn btn-navy" onclick="admin.exportStudentsCsv()">⬇ Export Students CSV</button>
-          <button class="btn btn-danger" onclick="admin.logout()">🚪 Logout</button>
+          <button class="btn-logout" onclick="admin.logout()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></button>
         </div>
       </div>
       <div class="kpi-grid">
@@ -478,7 +483,7 @@ const admin = {
     document.getElementById('admMain').innerHTML = `
       <div class="page-head">
         <div><h1>Faculty &amp; Staff Management (CRUD)</h1><span style="color:var(--slate);font-size:.9rem;">Only <strong>SuperAdmin</strong> can Create, Update, Suspend, or Delete Faculty, Support, and Admin accounts.</span></div>
-        <button class="btn btn-danger" onclick="admin.logout()">🚪 Logout</button>
+        <button class="btn-logout" onclick="admin.logout()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></button>
       </div>
       ${isSuper ? `
         <div class="card">

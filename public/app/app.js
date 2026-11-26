@@ -1055,7 +1055,7 @@ const app = {
       <div class="card">
         <h3>Account Controls</h3>
         <div class="row">
-          <button class="btn btn-navy btn-sm" onclick="app.logout()">🚪 Sign Out</button>
+          <button class="btn btn-sm logout-pill" style="border-radius:10px;padding:8px 14px;" onclick="app.logout()">Sign Out</button>
           <button class="btn btn-danger btn-sm" onclick="app.requestDeletion()">Request Account Deletion</button>
         </div>
       </div>

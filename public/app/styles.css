@@ -124,6 +124,31 @@ body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; ba
   transition: .15s;
 }
 .action-pill:hover { background: rgba(255,255,255,.20); }
+.logout-pill {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  border: 1px solid rgba(255,255,255,.22);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.30);
+}
+.logout-pill:hover { background: linear-gradient(135deg, #DC2626, #B91C1C); transform: translateY(-1px); }
+.logout-side-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 11px;
+  padding: 11px 14px;
+  font-weight: 700;
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.24);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.logout-side-btn:hover { background: linear-gradient(135deg, #DC2626, #B91C1C); transform: translateY(-1px); }
 .icon-circle {
   width: 36px;
   height: 36px;
