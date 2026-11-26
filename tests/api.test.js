@@ -40,9 +40,12 @@ async function login(phone) {
 }
 
 test('Public pages return 200 and protected endpoints require auth', async () => {
-  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg']) {
+  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg', '/assets/hemant-mudgal.jpg']) {
     const r = await fetch(`${baseUrl}${p}`);
     assert.equal(r.status, 200, `Expected 200 for ${p}`);
+    if (p === '/') {
+      assert.equal(r.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    }
   }
   for (const p of ['/api/v1/me', '/api/v1/tests', '/api/v1/community/posts', '/api/v1/flashcards', '/api/v1/admin/dashboard']) {
     const r = await fetch(`${baseUrl}${p}`);

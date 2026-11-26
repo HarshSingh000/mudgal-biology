@@ -182,7 +182,7 @@ export function createLearningRouter(db) {
     const isYoutubeId = /^[a-zA-Z0-9_-]{11}$/.test(safeId);
     if (isYoutubeId) {
       return res.type('html').send(`<!doctype html><html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;">
-        <iframe src="https://www.youtube-nocookie.com/embed/${safeId}?rel=0" title="Mudgal Biology Lecture" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;"></iframe>
+        <iframe src="https://www.youtube.com/embed/${safeId}?rel=0" referrerpolicy="strict-origin-when-cross-origin" title="Mudgal Biology Lecture" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%;height:100%;border:0;"></iframe>
       </body></html>`);
     }
     res.type('html').send(`<!doctype html><html><body style="margin:0;background:#0f172a;color:#f8fafc;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;">

@@ -17,7 +17,13 @@
     .portal-card { background: rgba(15,23,42,.55); border: 1px solid rgba(255,255,255,.10); border-radius: 14px; padding: 16px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .price { font-size: 1.25rem; font-weight: 800; color: var(--navy); margin-top: 12px; }
     .yt-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 6px 24px rgba(15,23,42,.04); display: flex; flex-direction: column; }
-    .yt-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; background: #0F172A; }
+    .yt-player { position: relative; width: 100%; aspect-ratio: 16/9; background: #0F172A; cursor: pointer; overflow: hidden; }
+    .yt-player img.yt-thumb { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s ease; }
+    .yt-player:hover img.yt-thumb { transform: scale(1.03); }
+    .yt-play-btn { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15,23,42,.28); border: 0; width: 100%; cursor: pointer; }
+    .yt-play-circle { width: 58px; height: 42px; border-radius: 12px; background: rgba(220,38,38,.94); color: #fff; display: grid; place-items: center; font-size: 1.15rem; box-shadow: 0 8px 20px rgba(0,0,0,.35); transition: transform .15s ease; }
+    .yt-player:hover .yt-play-circle { transform: scale(1.08); }
+    .yt-frame { width: 100%; height: 100%; border: 0; display: block; }
     .yt-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: space-between; }
     .yt-tag { font-size: .74rem; font-weight: 700; color: #B91C1C; background: #FEE2E2; padding: 3px 9px; border-radius: 999px; align-self: flex-start; }
     @media (max-width: 840px) { .hero-grid { grid-template-columns: 1fr; } }
@@ -100,28 +106,40 @@
       </div>
       <div class="grid-4">
         <div class="yt-card">
-          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/7t_IjBOSF1w?rel=0" title="RPSC 2nd Grade Science 2027 GEMS Mentorship" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-player" onclick="playYt(this,'7t_IjBOSF1w','RPSC 2nd Grade Science 2027 GEMS Mentorship')">
+            <img class="yt-thumb" src="https://i.ytimg.com/vi/7t_IjBOSF1w/hqdefault.jpg" alt="RPSC 2nd Grade Science 2027 GEMS Mentorship" loading="lazy" />
+            <button type="button" class="yt-play-btn" aria-label="Play video"><span class="yt-play-circle">&#9654;</span></button>
+          </div>
           <div class="yt-body">
             <div><span class="yt-tag">GEMS Strategy</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">RPSC 2nd Grade Science 2027 | GEMS Mentorship &amp; Test Series</h3></div>
             <a href="https://www.youtube.com/watch?v=7t_IjBOSF1w" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
           </div>
         </div>
         <div class="yt-card">
-          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/XfB-yCqwxo8?rel=0" title="Circulation in Vertebrates Complete Lecture" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-player" onclick="playYt(this,'XfB-yCqwxo8','Circulation in Vertebrates Complete Lecture')">
+            <img class="yt-thumb" src="https://i.ytimg.com/vi/XfB-yCqwxo8/hqdefault.jpg" alt="Circulation in Vertebrates Complete Lecture" loading="lazy" />
+            <button type="button" class="yt-play-btn" aria-label="Play video"><span class="yt-play-circle">&#9654;</span></button>
+          </div>
           <div class="yt-body">
             <div><span class="yt-tag">Graduation Biology</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Circulation in Vertebrates Complete Lecture | RPSC 2nd Grade</h3></div>
             <a href="https://www.youtube.com/watch?v=XfB-yCqwxo8" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
           </div>
         </div>
         <div class="yt-card">
-          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/6F3-zdr6-AM?rel=0" title="Nervous System in Vertebrates" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-player" onclick="playYt(this,'6F3-zdr6-AM','Nervous System in Vertebrates')">
+            <img class="yt-thumb" src="https://i.ytimg.com/vi/6F3-zdr6-AM/hqdefault.jpg" alt="Nervous System in Vertebrates" loading="lazy" />
+            <button type="button" class="yt-play-btn" aria-label="Play video"><span class="yt-play-circle">&#9654;</span></button>
+          </div>
           <div class="yt-body">
             <div><span class="yt-tag">Graduation Biology</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Nervous System in Vertebrates | Graduation Biology Series</h3></div>
             <a href="https://www.youtube.com/watch?v=6F3-zdr6-AM" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
           </div>
         </div>
         <div class="yt-card">
-          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/HoMQLU1ucks?rel=0" title="Types of DNA Polymerase RPSC PYQs" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-player" onclick="playYt(this,'HoMQLU1ucks','Types of DNA Polymerase RPSC PYQs')">
+            <img class="yt-thumb" src="https://i.ytimg.com/vi/HoMQLU1ucks/hqdefault.jpg" alt="Types of DNA Polymerase RPSC PYQs" loading="lazy" />
+            <button type="button" class="yt-play-btn" aria-label="Play video"><span class="yt-play-circle">&#9654;</span></button>
+          </div>
           <div class="yt-body">
             <div><span class="yt-tag">RPSC PYQs</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Types of DNA Polymerase | High-Yield RPSC PYQ Concepts</h3></div>
             <a href="https://www.youtube.com/watch?v=HoMQLU1ucks" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
@@ -173,6 +191,10 @@
   </footer>
 
   <script>
+    function playYt(el, videoId, title) {
+      el.onclick = null;
+      el.innerHTML = `<iframe class="yt-frame" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" referrerpolicy="strict-origin-when-cross-origin" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+    }
     async function loadLanding() {
       try {
         const [examsRes, coursesRes] = await Promise.all([fetch('/api/v1/exams'), fetch('/api/v1/courses')]);

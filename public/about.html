@@ -6,6 +6,14 @@
   <title>About Hemant Mudgal — Mudgal Biology</title>
   <link rel="icon" type="image/jpeg" href="/assets/logo.jpg" />
   <link rel="stylesheet" href="/site.css" />
+  <style>
+    .mentor-card { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: center; }
+    .mentor-photo { width: 240px; height: 240px; border-radius: 18px; object-fit: cover; border: 3px solid var(--teal); box-shadow: 0 12px 30px rgba(20,33,61,.16); display: block; }
+    @media (max-width: 720px) {
+      .mentor-card { grid-template-columns: 1fr; text-align: center; }
+      .mentor-photo { margin: 0 auto; width: 200px; height: 200px; }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -24,17 +32,32 @@
 
   <section class="page-hero">
     <div class="container">
-      <h1>About Mudgal Biology</h1>
-      <p>Learn Biology the Smart Way — “Har topic ko simple banake padhate hain”. Founded by Hemant Mudgal (RPSC 2nd Grade Science 2022 Qualified, Senior Teacher).</p>
+      <h1>About Hemant Mudgal &amp; Mudgal Biology</h1>
+      <p>Learn Biology the Smart Way — “Har topic ko simple banake padhate hain”.</p>
     </div>
   </section>
 
   <main class="section">
     <div class="container">
+      <div class="card mentor-card">
+        <img src="/assets/hemant-mudgal.jpg" alt="Hemant Mudgal — Senior Teacher & Founder of Mudgal Biology" class="mentor-photo" />
+        <div>
+          <span class="exam-code">Founder &amp; Biology Mentor</span>
+          <h2 style="margin:0 0 6px;color:var(--navy);">Hemant Mudgal</h2>
+          <p style="margin:0 0 10px;font-weight:600;color:var(--teal-dark);">RPSC 2nd Grade Science Exam 2022 Qualified &bull; Senior Teacher (Govt. of Rajasthan)</p>
+          <p style="margin:0 0 14px;color:var(--slate);">Mudgal Biology was started with a clear mission: to bring conceptual clarity, short tricks, and exam-oriented RPSC &amp; NEET Biology preparation to every aspirant in simple language — from a real achiever.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener" class="btn btn-primary">YouTube (@MUDGALBIOLOGY)</a>
+            <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener" class="btn btn-navy">Telegram Channel</a>
+            <a href="https://instagram.com/beinghemantmudgal" target="_blank" rel="noopener" class="btn btn-amber">@beinghemantmudgal</a>
+          </div>
+        </div>
+      </div>
+
       <div class="grid-2">
         <div class="card">
-          <h3>Our Vision &amp; Story</h3>
-          <p>Started by <strong>Hemant Mudgal</strong> — RPSC 2nd Grade Science Exam 2022 Qualified and currently serving as a Senior Teacher (Govt. of Rajasthan) — Mudgal Biology reaches aspirants across India to deliver Biology education that is simple, relevant, and result-driven.</p>
+          <h3>Our Vision</h3>
+          <p>हर छात्र तक ऐसी Biology पहुँचाना जो simple, relevant aur result-driven हो — so every aspirant preparing for RPSC, URATPG, or NEET builds unshakeable fundamentals.</p>
         </div>
         <div class="card">
           <h3>Target Exams &amp; Offerings</h3>
@@ -42,13 +65,9 @@
             <li><strong>RPSC 1st Grade Biology</strong> &amp; <strong>RPSC 2nd Grade Science</strong> (Graduation Biology Series + GEMS Mentorship).</li>
             <li><strong>URATPG (Biology)</strong> &amp; <strong>NEET (Bio Focused)</strong> with NCERT &amp; B.Sc. level clarity.</li>
             <li>Topic-wise lectures with short tricks, PYQ solutions, smart short-note e-books &amp; flashcards.</li>
-            <li>Negative-marked online test series &amp; dedicated doubt resolution inside the Student App.</li>
+            <li>Negative-marked online test series &amp; dedicated doubt resolution inside the <a href="/app">Student App</a>.</li>
           </ul>
         </div>
-      </div>
-      <div class="card">
-        <h3>Official Community &amp; Portals</h3>
-        <p>Watch free lectures on <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener">YouTube (@MUDGALBIOLOGY)</a>, join daily notes updates on <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener">Telegram (t.me/MudgalBiologyT)</a>, and access full batches, tests, and smart e-books inside the <a href="/app">Student App</a>.</p>
       </div>
     </div>
   </main>
