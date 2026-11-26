@@ -192,3 +192,51 @@ test('Free mobile + password registration, duplicate protection, login, and pass
   });
   assert.equal(okNew.status, 200);
 });
+
+test('Dashboard student details, verification, and SuperAdmin-only faculty creation', async () => {
+  const admin = await login('9999999999');
+  const admHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.accessToken}` };
+
+  // Dashboard includes detailed student records
+  const dash = await (await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: admHeaders })).json();
+  assert.ok(Array.isArray(dash.students) && dash.students.length >= 1);
+  const targetStudent = dash.students.find((s) => s.phone === '9123456789');
+  assert.ok(targetStudent);
+  assert.equal(targetStudent.isVerified, false);
+
+  // Admin can verify student as real
+  const verRes = await fetch(`${baseUrl}/api/v1/admin/students/${targetStudent.userId}/verify`, {
+    method: 'POST',
+    headers: admHeaders,
+    body: JSON.stringify({ verified: true })
+  });
+  assert.equal(verRes.status, 200);
+  assert.equal((await verRes.json()).isVerified, true);
+
+  // Regular Admin CANNOT add faculty (403)
+  const deniedFac = await fetch(`${baseUrl}/api/v1/admin/faculties`, {
+    method: 'POST',
+    headers: admHeaders,
+    body: JSON.stringify({ fullName: 'Dr. Denied', phone: '9777776666', password: 'FacPass@123' })
+  });
+  assert.equal(deniedFac.status, 403);
+
+  // SuperAdmin CAN add faculty and new faculty can sign in with password
+  const superAdmin = await login('8888888888');
+  const superHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${superAdmin.accessToken}` };
+  const addFac = await fetch(`${baseUrl}/api/v1/admin/faculties`, {
+    method: 'POST',
+    headers: superHeaders,
+    body: JSON.stringify({ fullName: 'Dr. Meera Singh', phone: '9777776666', email: 'meera@mudgalbiology.in', password: 'FacPass@123', role: 'Faculty' })
+  });
+  assert.equal(addFac.status, 200);
+  const facLogin = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: '9777776666', password: 'FacPass@123' })
+  });
+  assert.equal(facLogin.status, 200);
+  const facAuth = await facLogin.json();
+  assert.ok(facAuth.user.roles.includes('Faculty'));
+  assert.equal((await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: { Authorization: `Bearer ${facAuth.accessToken}` } })).status, 200);
+});

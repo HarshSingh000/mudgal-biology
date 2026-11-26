@@ -85,7 +85,7 @@ const admin = {
             </div>
             <p id="admErr" style="color:var(--danger);font-weight:600;margin-top:10px;"></p>
             <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:.82rem;color:var(--slate);">
-              Staff Phones: <code>9999999999</code> (Admin) &bull; <code>9811112222</code> (Faculty) &bull; <code>9811114444</code> (Support)
+              Staff Phones: <code>9999999999</code> (Admin) &bull; <code>8888888888</code> (SuperAdmin) &bull; <code>9811112222</code> (Faculty)
               <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
                 <a href="/">Website</a> <a href="/app">Student App</a> <a href="/about">About Us</a> <a href="/privacy">Privacy Policy</a>
               </div>
@@ -96,25 +96,30 @@ const admin = {
       return;
     }
 
+    const isSuper = this.user.roles.includes('SuperAdmin');
     root.innerHTML = `
       <div class="mobile-header">
         <div style="display:flex;align-items:center;gap:8px;font-weight:800;"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /> Mudgal Biology Admin</div>
-        <button class="hamburger" onclick="admin.toggleMenu()">☰ Menu</button>
+        <div style="display:flex;gap:6px;">
+          <button class="hamburger" style="background:rgba(239,68,68,.28);" onclick="admin.logout()">🚪 Logout</button>
+          <button class="hamburger" onclick="admin.toggleMenu()">☰ Menu</button>
+        </div>
       </div>
       <div id="adminBackdrop" class="backdrop" onclick="admin.toggleMenu()"></div>
       <div class="admin-shell">
         <aside id="adminSide" class="side">
-          <div class="brand"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">Admin Console</div></div></div>
-          <button class="${this.tab==='dashboard'?'active':''}" onclick="admin.navigate('dashboard')">📊 Dashboard</button>
+          <div class="brand"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">${this.user.roles.join(', ')}</div></div></div>
+          <button class="${this.tab==='dashboard'?'active':''}" onclick="admin.navigate('dashboard')">📊 Dashboard &amp; Students</button>
           <button class="${this.tab==='catalogue'?'active':''}" onclick="admin.navigate('catalogue')">📚 Courses &amp; Curriculum</button>
           <button class="${this.tab==='tests'?'active':''}" onclick="admin.navigate('tests')">📝 Mock Tests &amp; Live</button>
           <button class="${this.tab==='operations'?'active':''}" onclick="admin.navigate('operations')">🛡️ Students, Doubts &amp; Logs</button>
+          <button class="${this.tab==='staff'?'active':''}" onclick="admin.navigate('staff')">👨‍🏫 Faculty &amp; Staff ${isSuper ? '(SuperAdmin)' : ''}</button>
           <a href="/">🏠 Public Website &rarr;</a>
           <a href="/app">🌐 Student App &rarr;</a>
           <a href="/about">ℹ️ About Us</a>
           <a href="/privacy">🔒 Privacy Policy</a>
           <div style="margin-top:auto;padding-top:14px;">
-            <button class="btn btn-amber" style="width:100%;color:var(--navy);justify-content:center;" onclick="admin.logout()">Sign Out (${this.user.fullName})</button>
+            <button class="btn btn-amber" style="width:100%;color:var(--navy);justify-content:center;" onclick="admin.logout()">🚪 Sign Out (${this.user.fullName})</button>
           </div>
         </aside>
         <main class="content" id="admMain"><div class="card">Loading...</div></main>
@@ -125,6 +130,7 @@ const admin = {
     else if (this.tab === 'catalogue') this.loadCatalogue();
     else if (this.tab === 'tests') this.loadTests();
     else if (this.tab === 'operations') this.loadOperations();
+    else if (this.tab === 'staff') this.loadStaff();
   },
 
   switchAuthMode(mode) {
@@ -158,8 +164,7 @@ const admin = {
       }
       this.token = auth.accessToken;
       this.user = auth.user;
-      localStorage.setItem('mb_adm_token', auth.accessToken);
-      localStorage.setItem('mb_adm_user', JSON.stringify(auth.user));
+      localStorage.setItem('mudgal_admin_token', auth.accessToken);
       this.render();
     } catch (e) { document.getElementById('admErr').textContent = e.message; }
   },
@@ -196,18 +201,37 @@ const admin = {
 
   async loadDashboard() {
     const d = await this.api('/admin/dashboard');
+    const students = d.students || [];
     document.getElementById('admMain').innerHTML = `
       <div class="page-head">
-        <div><h1>Mudgal Biology — Executive Overview</h1><span style="color:var(--slate);font-size:.9rem;">Real-time metrics across enrollments, courses, doubts, and revenue.</span></div>
-        <button class="btn btn-primary" onclick="admin.exportCsv()">⬇ Export Orders CSV</button>
+        <div><h1>Mudgal Biology — Executive Overview</h1><span style="color:var(--slate);font-size:.9rem;">Signed in as <strong>${this.user.fullName}</strong> (${this.user.roles.join(', ')})</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="admin.exportCsv()">⬇ Export Orders CSV</button>
+          <button class="btn btn-navy" onclick="admin.exportStudentsCsv()">⬇ Export Students CSV</button>
+          <button class="btn btn-danger" onclick="admin.logout()">🚪 Logout</button>
+        </div>
       </div>
       <div class="kpi-grid">
         <div class="kpi"><span>Registered Students</span><strong>${d.totalStudents}</strong></div>
+        <div class="kpi"><span>Verified Real Students</span><strong>${d.verifiedStudents ?? 0}</strong></div>
         <div class="kpi"><span>Active Enrollments</span><strong>${d.activeEntitlements}</strong></div>
         <div class="kpi"><span>Published Courses</span><strong>${d.publishedCourses}</strong></div>
         <div class="kpi"><span>Open Doubts</span><strong>${d.openDoubts}</strong></div>
-        <div class="kpi"><span>Open Reports</span><strong>${d.openReports}</strong></div>
         <div class="kpi"><span>Verified Revenue</span><strong>₹${d.totalRevenueInr}</strong></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <h3 style="margin:0;">Student Details (${students.length})</h3>
+          <input id="dashStudentSearch" placeholder="Search name, phone, email, exam..." oninput="admin.filterDashStudents()" style="max-width:280px;margin:0;" />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Student</th><th>Phone &amp; Email</th><th>State &amp; Exam</th><th>Batches &amp; Paid</th><th>Verification</th><th>Actions</th></tr></thead>
+            <tbody id="dashStudentsBody">
+              ${this.renderStudentRows(students)}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="card">
         <h3 style="margin-top:0;">Recent Orders</h3>
@@ -221,6 +245,37 @@ const admin = {
         </div>
       </div>
     `;
+    this._dashStudents = students;
+  },
+
+  renderStudentRows(students) {
+    return students.map((u) => `
+      <tr>
+        <td><strong>${u.fullName}</strong><br/><small style="color:var(--slate);">Joined ${new Date(u.createdAt).toLocaleDateString()}</small></td>
+        <td><code>${u.phone}</code><br/><small style="color:var(--slate);">${u.email}</small></td>
+        <td>${u.state}<br/><span class="badge">${u.targetExam}</span></td>
+        <td><strong>${u.enrolledCount}</strong> batch(es) &bull; ₹${u.totalSpentInr}<br/><small style="color:var(--slate);">${u.enrolledCourses.join(', ') || 'Free tier'}</small></td>
+        <td>${u.isVerified ? `<span class="badge">✓ Verified (${u.verificationSource})</span>` : `<span class="badge" style="background:#FEF3C7;color:#92400E;">Pending</span>`}<br/><small>${u.status}</small></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${u.isVerified ? `<button class="btn btn-sm" style="background:#E2E8F0;color:#0F172A;" onclick="admin.verifyStudent('${u.userId}',false)">Unverify</button>` : `<button class="btn btn-primary btn-sm" onclick="admin.verifyStudent('${u.userId}',true)">Verify Real ✓</button>`}
+          ${u.status === 'Suspended' ? `<button class="btn btn-amber btn-sm" onclick="admin.moderate('user','${u.userId}','activate')">Activate</button>` : `<button class="btn btn-danger btn-sm" onclick="admin.moderate('user','${u.userId}','suspend')">Suspend</button>`}
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="6">No students registered yet.</td></tr>';
+  },
+
+  filterDashStudents() {
+    const q = (document.getElementById('dashStudentSearch')?.value || '').toLowerCase().trim();
+    const list = (this._dashStudents || []).filter((u) =>
+      `${u.fullName} ${u.phone} ${u.email} ${u.state} ${u.targetExam}`.toLowerCase().includes(q)
+    );
+    document.getElementById('dashStudentsBody').innerHTML = this.renderStudentRows(list);
+  },
+
+  async verifyStudent(userId, verified) {
+    await this.api(`/admin/students/${userId}/verify`, { method: 'POST', body: JSON.stringify({ verified }) });
+    if (this.tab === 'dashboard') this.loadDashboard();
+    else this.loadOperations();
   },
 
   async exportCsv() {
@@ -229,6 +284,14 @@ const admin = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'mudgal-biology-orders.csv'; a.click();
+  },
+
+  async exportStudentsCsv() {
+    const csv = await this.api('/admin/students/export');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'mudgal-biology-students.csv'; a.click();
   },
 
   async loadCatalogue() {
@@ -367,9 +430,12 @@ const admin = {
     document.getElementById('admMain').innerHTML = `
       <div class="page-head"><h1>Students, Doubts, Moderation &amp; Audit</h1></div>
       <div class="card">
-        <h3 style="margin-top:0;">Registered Users (${students.length})</h3>
-        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Goal</th><th>Status</th></tr></thead><tbody>
-          ${students.map((u)=>`<tr><td><strong>${u.fullName}</strong></td><td>${u.phone}</td><td>${u.targetExam}</td><td><span class="badge">${u.status}</span></td></tr>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+          <h3 style="margin:0;">Registered Students (${students.length})</h3>
+          <button class="btn btn-navy btn-sm" onclick="admin.exportStudentsCsv()">⬇ Export Students CSV</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Student</th><th>Phone &amp; Email</th><th>State &amp; Exam</th><th>Batches &amp; Paid</th><th>Verification</th><th>Actions</th></tr></thead><tbody>
+          ${this.renderStudentRows(students)}
         </tbody></table></div>
       </div>
       <div class="card">
@@ -398,7 +464,87 @@ const admin = {
   },
   async moderate(entityType, id, action) {
     await this.api(`/admin/community/${entityType}/${id}/moderate`, { method: 'POST', body: JSON.stringify({ action }) });
-    this.loadOperations();
+    if (this.tab === 'dashboard') this.loadDashboard();
+    else this.loadOperations();
+  },
+
+  async loadStaff() {
+    const isSuper = this.user.roles.includes('SuperAdmin');
+    let staff = [];
+    let errMsg = '';
+    try {
+      staff = await this.api('/admin/staff');
+    } catch (e) { errMsg = e.message; }
+    document.getElementById('admMain').innerHTML = `
+      <div class="page-head">
+        <div><h1>Faculty &amp; Staff Management</h1><span style="color:var(--slate);font-size:.9rem;">Only <strong>SuperAdmin</strong> can add or suspend Faculty, Support, and Admin accounts.</span></div>
+        <button class="btn btn-danger" onclick="admin.logout()">🚪 Logout</button>
+      </div>
+      ${isSuper ? `
+        <div class="card">
+          <h3 style="margin-top:0;">➕ Add New Faculty / Staff (SuperAdmin)</h3>
+          <div class="grid-2">
+            <div><label>Full Name</label><input id="fName" placeholder="e.g. Dr. Anjali Verma" /></div>
+            <div><label>10-digit Mobile Number</label><input id="fPhone" placeholder="e.g. 9822334455" /></div>
+            <div><label>Email (optional)</label><input id="fEmail" placeholder="faculty@mudgalbiology.in" /></div>
+            <div><label>Password (min 6 chars)</label><input id="fPwd" type="password" placeholder="Set login password" /></div>
+          </div>
+          <label>Role</label>
+          <select id="fRole" style="max-width:260px;">
+            <option value="Faculty">Faculty</option>
+            <option value="SupportAgent">SupportAgent</option>
+            <option value="Admin">Admin</option>
+          </select>
+          <button class="btn btn-primary" onclick="admin.addFaculty()">Add Faculty Account</button>
+          <p id="fErr" style="color:var(--danger);font-weight:600;margin-top:8px;"></p>
+        </div>
+      ` : `<div class="card" style="border-left:4px solid var(--amber);"><strong>Permission Notice:</strong> You are signed in as <strong>${this.user.roles.join(', ')}</strong>. Sign in as <strong>SuperAdmin</strong> (<code>8888888888</code>) to add or manage Faculty accounts.</div>`}
+      <div class="card">
+        <h3 style="margin-top:0;">Current Staff &amp; Faculties (${staff.length})</h3>
+        ${errMsg ? `<p style="color:var(--danger);">${errMsg}</p>` : `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                ${staff.map((s) => `
+                  <tr>
+                    <td><strong>${s.fullName}</strong></td>
+                    <td><code>${s.phone}</code></td>
+                    <td>${s.email}</td>
+                    <td><span class="badge">${s.role}</span></td>
+                    <td>${s.status}</td>
+                    <td>${isSuper && s.userId !== this.user.userId ? (s.status === 'Suspended' ? `<button class="btn btn-primary btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Active')">Activate</button>` : `<button class="btn btn-danger btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Suspended')">Suspend</button>`) : '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  async addFaculty() {
+    try {
+      document.getElementById('fErr').textContent = '';
+      await this.api('/admin/faculties', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: document.getElementById('fName').value,
+          phone: document.getElementById('fPhone').value,
+          email: document.getElementById('fEmail').value,
+          password: document.getElementById('fPwd').value,
+          role: document.getElementById('fRole').value
+        })
+      });
+      alert('Faculty account added successfully!');
+      this.loadStaff();
+    } catch (e) { document.getElementById('fErr').textContent = e.message; }
+  },
+
+  async toggleStaffStatus(userId, status) {
+    await this.api(`/admin/staff/${userId}/status`, { method: 'POST', body: JSON.stringify({ status }) });
+    this.loadStaff();
   }
 };
 

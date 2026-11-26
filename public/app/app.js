@@ -110,6 +110,12 @@ const app = {
       goalPill.style.display = 'none';
     }
 
+    const isAuthed = Boolean(this.token && this.user);
+    const logoutTopBtn = document.getElementById('logoutTopBtn');
+    const logoutSideBtn = document.getElementById('logoutSideBtn');
+    if (logoutTopBtn) logoutTopBtn.style.display = isAuthed ? 'inline-flex' : 'none';
+    if (logoutSideBtn) logoutSideBtn.style.display = isAuthed ? 'block' : 'none';
+
     const view = document.getElementById('mainView');
     if (!this.token || !this.user) return this.renderAuth(view);
     if (!this.user.targetExamId) return this.renderExamOnboarding(view);
@@ -1015,7 +1021,10 @@ const app = {
     view.innerHTML = `
       <div class="card">
         <div class="row" style="justify-content:space-between;">
-          <div><h2 style="margin:0;">${this.user.fullName}</h2><div class="muted">Mobile: ${this.user.phone} &bull; Goal: ${this.user.targetExamName || 'Not set'}</div></div>
+          <div>
+            <h2 style="margin:0;">${this.user.fullName} ${this.user.isVerified ? '<span class="badge">✓ Verified</span>' : '<span class="badge-amber">Pending Verification</span>'}</h2>
+            <div class="muted">Mobile: ${this.user.phone} &bull; Goal: ${this.user.targetExamName || 'Not set'}</div>
+          </div>
           <div class="row">
             <button class="btn btn-outline btn-sm" onclick="app.openGoalPicker()">Change Exam Goal</button>
             <button class="btn btn-danger btn-sm" onclick="app.logout()">Logout</button>

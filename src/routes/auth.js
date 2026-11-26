@@ -93,6 +93,8 @@ export function createAuthRouter(db) {
       email: u.Email,
       fullName: u.FullName,
       status: u.Status,
+      isVerified: Boolean(u.IsVerified),
+      verificationSource: u.VerificationSource || 'Pending',
       roles,
       preferredLanguage: u.PreferredLanguage || 'en',
       state: u.State,
@@ -113,10 +115,10 @@ export function createAuthRouter(db) {
     return { accessToken, refreshToken: rawRefresh, expiresAt, user: getProfile(userId) };
   };
 
-  const createStudentAccount = ({ phone, fullName, email = null, state = null, passwordHash = null }) => {
+  const createStudentAccount = ({ phone, fullName, email = null, state = null, passwordHash = null, isVerified = 0, verificationSource = 'Pending' }) => {
     const uid = uuid();
-    db.prepare('INSERT INTO Users (UserId, Phone, Email, FullName, PasswordHash, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(uid, phone, email ? String(email).trim() : null, String(fullName || '').trim() || 'Aspirant', passwordHash, 'Active', nowIso());
+    db.prepare('INSERT INTO Users (UserId, Phone, Email, FullName, PasswordHash, IsVerified, VerificationSource, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(uid, phone, email ? String(email).trim() : null, String(fullName || '').trim() || 'Aspirant', passwordHash, isVerified ? 1 : 0, verificationSource, 'Active', nowIso());
     const role = db.prepare("SELECT RoleId FROM Roles WHERE Name = 'Student'").get();
     if (role) db.prepare('INSERT INTO UserRoles (UserId, RoleId) VALUES (?, ?)').run(uid, role.RoleId);
     db.prepare('INSERT INTO StudentProfiles (UserId, PreferredLanguage, State, AcceptedTerms, TermsAcceptedAt) VALUES (?, ?, ?, 1, ?)')
@@ -127,7 +129,7 @@ export function createAuthRouter(db) {
 
   router.post('/auth/register', verifyIpLimiter, asyncHandler((req, res) => {
     const phone = normalizePhone(req.body?.phone);
-    if (phone.length < 10) throw new AppError('Please enter a valid 10-digit mobile number.', 400, 'INVALID_PHONE');
+    if (!/^[6-9]\d{9}$/.test(phone)) throw new AppError('Please enter a valid 10-digit Indian mobile number.', 400, 'INVALID_PHONE');
     const fullName = String(req.body?.fullName || '').trim();
     if (!fullName) throw new AppError('Please enter your full name.', 400, 'INVALID_NAME');
     const passwordHash = hashPassword(req.body?.password);
@@ -202,9 +204,11 @@ export function createAuthRouter(db) {
 
     let user = db.prepare('SELECT * FROM Users WHERE Phone = ?').get(phone);
     if (!user) {
-      user = createStudentAccount({ phone, fullName: req.body?.fullName });
+      user = createStudentAccount({ phone, fullName: req.body?.fullName, isVerified: 1, verificationSource: 'OTP' });
     } else if (user.Status === 'Suspended') {
       throw new AppError('Account is suspended. Contact support.', 403, 'ACCOUNT_SUSPENDED');
+    } else if (!user.IsVerified) {
+      db.prepare("UPDATE Users SET IsVerified = 1, VerificationSource = 'OTP' WHERE UserId = ?").run(user.UserId);
     }
 
     res.json(issueTokens(user.UserId));

@@ -29,6 +29,8 @@ function initSchema(db) {
       Email TEXT,
       FullName TEXT NOT NULL,
       PasswordHash TEXT,
+      IsVerified INTEGER NOT NULL DEFAULT 0,
+      VerificationSource TEXT NOT NULL DEFAULT 'Pending',
       Status TEXT NOT NULL DEFAULT 'Active',
       CreatedAt TEXT NOT NULL
     );
@@ -361,15 +363,26 @@ function initSchema(db) {
   if (!cols.some((c) => c.name === 'PasswordHash')) {
     db.exec('ALTER TABLE Users ADD COLUMN PasswordHash TEXT');
   }
+  if (!cols.some((c) => c.name === 'IsVerified')) {
+    db.exec('ALTER TABLE Users ADD COLUMN IsVerified INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!cols.some((c) => c.name === 'VerificationSource')) {
+    db.exec("ALTER TABLE Users ADD COLUMN VerificationSource TEXT NOT NULL DEFAULT 'Pending'");
+  }
 }
 
 function syncStaffPasswords(db) {
   const adminPwd = process.env.ADMIN_PASSWORD;
   if (adminPwd && adminPwd.length >= 6) {
-    db.prepare("UPDATE Users SET PasswordHash = ? WHERE Phone = '9999999999'").run(hashPassword(adminPwd));
-  } else if ((process.env.NODE_ENV || 'development') !== 'production') {
+    db.prepare("UPDATE Users SET PasswordHash = ?, IsVerified = 1, VerificationSource = 'Staff' WHERE Phone = '9999999999'").run(hashPassword(adminPwd));
+  }
+  const superPwd = process.env.SUPER_ADMIN_PASSWORD;
+  if (superPwd && superPwd.length >= 6) {
+    db.prepare("UPDATE Users SET PasswordHash = ?, IsVerified = 1, VerificationSource = 'Staff' WHERE Phone = '8888888888'").run(hashPassword(superPwd));
+  }
+  if ((process.env.NODE_ENV || 'development') !== 'production') {
     const devHash = hashPassword('Mudgal@123');
-    db.prepare("UPDATE Users SET PasswordHash = ? WHERE PasswordHash IS NULL AND Phone IN ('9876543210', '9811112222', '9811113333', '9811114444', '9999999999', '8888888888')").run(devHash);
+    db.prepare("UPDATE Users SET PasswordHash = COALESCE(PasswordHash, ?), IsVerified = 1, VerificationSource = 'Sandbox' WHERE Phone IN ('9876543210', '9811112222', '9811113333', '9811114444', '9999999999', '8888888888')").run(devHash);
   }
 }
 

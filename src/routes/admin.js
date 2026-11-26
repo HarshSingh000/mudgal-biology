@@ -1,6 +1,49 @@
 import express from 'express';
 import { nowIso, recordAudit, uuid } from '../db.js';
-import { AppError, asyncHandler, requireAuth, requireRoles } from '../security.js';
+import { AppError, asyncHandler, hashPassword, normalizePhone, requireAuth, requireRoles } from '../security.js';
+
+function getStudentsDetailed(db) {
+  const now = nowIso();
+  const rows = db.prepare(`
+    SELECT DISTINCT u.UserId, u.FullName, u.Phone, u.Email, u.IsVerified, u.VerificationSource, u.Status, u.CreatedAt,
+      sp.State, e.Code AS TargetExam
+    FROM Users u
+    JOIN UserRoles ur ON u.UserId = ur.UserId
+    JOIN Roles r ON ur.RoleId = r.RoleId
+    LEFT JOIN StudentProfiles sp ON u.UserId = sp.UserId
+    LEFT JOIN Exams e ON sp.TargetExamId = e.ExamId
+    WHERE r.Name = 'Student'
+    ORDER BY u.CreatedAt DESC LIMIT 200
+  `).all();
+
+  const entStmt = db.prepare(`
+    SELECT c.Title
+    FROM Entitlements en
+    JOIN Courses c ON en.CourseId = c.CourseId
+    WHERE en.UserId = ? AND en.Status = 'Active' AND en.ExpiresAt > ?
+  `);
+  const spentStmt = db.prepare("SELECT COALESCE(SUM(TotalAmount), 0) AS total FROM Orders WHERE UserId = ? AND Status = 'Paid'");
+
+  return rows.map((u) => {
+    const enrolled = entStmt.all(u.UserId, now).map((x) => x.Title);
+    const totalSpentInr = spentStmt.get(u.UserId).total;
+    return {
+      userId: u.UserId,
+      fullName: u.FullName,
+      phone: u.Phone,
+      email: u.Email || '-',
+      state: u.State || '-',
+      targetExam: u.TargetExam || '-',
+      isVerified: Boolean(u.IsVerified),
+      verificationSource: u.VerificationSource || 'Pending',
+      status: u.Status,
+      enrolledCount: enrolled.length,
+      enrolledCourses: enrolled,
+      totalSpentInr,
+      createdAt: u.CreatedAt
+    };
+  });
+}
 
 export function createAdminRouter(db) {
   const router = express.Router();
@@ -8,7 +51,8 @@ export function createAdminRouter(db) {
 
   router.get('/dashboard', asyncHandler((_req, res) => {
     const now = nowIso();
-    const totalStudents = db.prepare("SELECT COUNT(*) AS cnt FROM UserRoles ur JOIN Roles r ON ur.RoleId = r.RoleId WHERE r.Name = 'Student'").get().cnt;
+    const totalStudents = db.prepare("SELECT COUNT(DISTINCT ur.UserId) AS cnt FROM UserRoles ur JOIN Roles r ON ur.RoleId = r.RoleId WHERE r.Name = 'Student'").get().cnt;
+    const verifiedStudents = db.prepare("SELECT COUNT(DISTINCT u.UserId) AS cnt FROM Users u JOIN UserRoles ur ON u.UserId = ur.UserId JOIN Roles r ON ur.RoleId = r.RoleId WHERE r.Name = 'Student' AND u.IsVerified = 1").get().cnt;
     const activeEntitlements = db.prepare("SELECT COUNT(*) AS cnt FROM Entitlements WHERE Status = 'Active' AND ExpiresAt > ?").get(now).cnt;
     const publishedCourses = db.prepare("SELECT COUNT(*) AS cnt FROM Courses WHERE Status = 'Published'").get().cnt;
     const openDoubts = db.prepare("SELECT COUNT(*) AS cnt FROM Doubts WHERE Status IN ('Open', 'Assigned')").get().cnt;
@@ -25,7 +69,8 @@ export function createAdminRouter(db) {
         orderItemId: i.OrderItemId, productType: i.ProductType, productId: i.ProductId, productTitle: i.ProductTitle, unitPrice: i.UnitPrice, quantity: i.Quantity
       }))
     }));
-    res.json({ totalStudents, activeEntitlements, publishedCourses, openDoubts, openReports, totalRevenueInr, recentOrders });
+    const students = getStudentsDetailed(db).slice(0, 25);
+    res.json({ totalStudents, verifiedStudents, activeEntitlements, publishedCourses, openDoubts, openReports, totalRevenueInr, recentOrders, students });
   }));
 
   router.get('/courses', asyncHandler((_req, res) => {
@@ -158,17 +203,77 @@ export function createAdminRouter(db) {
     res.send(lines.join('\n'));
   }));
 
-  router.get('/students', requireRoles('Admin', 'SuperAdmin'), asyncHandler((_req, res) => {
+  router.get('/students', requireRoles('Admin', 'SuperAdmin', 'Faculty', 'SupportAgent'), asyncHandler((_req, res) => {
+    res.json(getStudentsDetailed(db));
+  }));
+
+  router.get('/students/export', requireRoles('Admin', 'SuperAdmin'), asyncHandler((_req, res) => {
+    const students = getStudentsDetailed(db);
+    const lines = ['UserId,FullName,Phone,Email,State,TargetExam,Verified,VerificationSource,Status,EnrolledBatches,TotalPaidINR,JoinedUtc'];
+    for (const s of students) {
+      const batches = s.enrolledCourses.join(' | ').replace(/,/g, ' ');
+      lines.push(`${s.userId},${s.fullName.replace(/,/g, ' ')},${s.phone},${s.email},${s.state},${s.targetExam},${s.isVerified ? 'Yes' : 'No'},${s.verificationSource},${s.status},${batches},${s.totalSpentInr},${s.createdAt}`);
+    }
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="students-${nowIso().slice(0, 10)}.csv"`);
+    res.send(lines.join('\n'));
+  }));
+
+  router.post('/students/:id/verify', requireRoles('Admin', 'SuperAdmin', 'SupportAgent'), asyncHandler((req, res) => {
+    const u = db.prepare('SELECT UserId, FullName FROM Users WHERE UserId = ?').get(req.params.id);
+    if (!u) throw new AppError('Student not found.', 404, 'NOT_FOUND');
+    const verified = req.body?.verified !== false;
+    db.prepare('UPDATE Users SET IsVerified = ?, VerificationSource = ? WHERE UserId = ?')
+      .run(verified ? 1 : 0, verified ? 'AdminApproved' : 'Pending', u.UserId);
+    recordAudit(db, req.user.userId, req.user.name, verified ? 'VERIFY_STUDENT' : 'UNVERIFY_STUDENT', 'User', u.UserId, u.FullName);
+    res.json({ userId: u.UserId, isVerified: verified });
+  }));
+
+  router.get('/staff', requireRoles('Admin', 'SuperAdmin'), asyncHandler((_req, res) => {
     const rows = db.prepare(`
-      SELECT u.UserId, u.FullName, u.Phone, u.Email, u.Status, u.CreatedAt, e.Code AS TargetExam
+      SELECT u.UserId, u.FullName, u.Phone, u.Email, u.Status, u.CreatedAt, r.Name AS RoleName
       FROM Users u
-      LEFT JOIN StudentProfiles sp ON u.UserId = sp.UserId
-      LEFT JOIN Exams e ON sp.TargetExamId = e.ExamId
-      ORDER BY u.CreatedAt DESC LIMIT 100
+      JOIN UserRoles ur ON u.UserId = ur.UserId
+      JOIN Roles r ON ur.RoleId = r.RoleId
+      WHERE r.Name IN ('SuperAdmin', 'Admin', 'Faculty', 'SupportAgent')
+      ORDER BY u.CreatedAt DESC
     `).all();
-    res.json(rows.map((u) => ({
-      userId: u.UserId, fullName: u.FullName, phone: u.Phone, email: u.Email, status: u.Status, targetExam: u.TargetExam || '-', createdAt: u.CreatedAt
+    res.json(rows.map((s) => ({
+      userId: s.UserId, fullName: s.FullName, phone: s.Phone, email: s.Email || '-', role: s.RoleName, status: s.Status, createdAt: s.CreatedAt
     })));
+  }));
+
+  router.post('/faculties', requireRoles('SuperAdmin'), asyncHandler((req, res) => {
+    const { fullName, phone: rawPhone, email = '', password, role = 'Faculty' } = req.body || {};
+    const phone = normalizePhone(rawPhone);
+    if (!/^[6-9]\d{9}$/.test(phone)) throw new AppError('Enter a valid 10-digit Indian mobile number.', 400, 'INVALID_PHONE');
+    if (!fullName || !String(fullName).trim()) throw new AppError('Faculty full name is required.', 400, 'INVALID_NAME');
+    const allowedStaffRoles = ['Faculty', 'SupportAgent', 'Admin'];
+    const targetRole = allowedStaffRoles.includes(role) ? role : 'Faculty';
+    const passwordHash = hashPassword(password);
+
+    if (db.prepare('SELECT 1 FROM Users WHERE Phone = ?').get(phone)) {
+      throw new AppError('A user with this mobile number already exists.', 409, 'ACCOUNT_EXISTS');
+    }
+    const roleRow = db.prepare('SELECT RoleId FROM Roles WHERE Name = ?').get(targetRole);
+    if (!roleRow) throw new AppError('Target role not found.', 400, 'INVALID_ROLE');
+
+    const uid = uuid();
+    db.prepare("INSERT INTO Users (UserId, Phone, Email, FullName, PasswordHash, IsVerified, VerificationSource, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, 1, 'SuperAdminCreated', 'Active', ?)")
+      .run(uid, phone, email ? String(email).trim() : null, String(fullName).trim(), passwordHash, nowIso());
+    db.prepare('INSERT INTO UserRoles (UserId, RoleId) VALUES (?, ?)').run(uid, roleRow.RoleId);
+    recordAudit(db, req.user.userId, req.user.name, `ADD_${targetRole.toUpperCase()}`, 'User', uid, `${String(fullName).trim()} (${phone})`);
+    res.json({ userId: uid, fullName: String(fullName).trim(), phone, email: email || '-', role: targetRole, status: 'Active' });
+  }));
+
+  router.post('/staff/:id/status', requireRoles('SuperAdmin'), asyncHandler((req, res) => {
+    const nextStatus = req.body?.status === 'Suspended' ? 'Suspended' : 'Active';
+    const u = db.prepare('SELECT UserId, FullName FROM Users WHERE UserId = ?').get(req.params.id);
+    if (!u) throw new AppError('Staff member not found.', 404, 'NOT_FOUND');
+    if (u.UserId === req.user.userId) throw new AppError('Cannot change your own status.', 400, 'INVALID_ACTION');
+    db.prepare('UPDATE Users SET Status = ? WHERE UserId = ?').run(nextStatus, u.UserId);
+    recordAudit(db, req.user.userId, req.user.name, `STAFF_STATUS_${nextStatus.toUpperCase()}`, 'User', u.UserId, u.FullName);
+    res.json({ userId: u.UserId, status: nextStatus });
   }));
 
   router.get('/doubts', asyncHandler((_req, res) => {

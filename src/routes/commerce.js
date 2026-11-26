@@ -51,6 +51,7 @@ export function createCommerceRouter(db) {
   const fulfillCapturedOrder = (order, payment) => {
     db.prepare("UPDATE Payments SET Status = 'Captured', VerifiedAt = ? WHERE PaymentId = ?").run(nowIso(), payment.PaymentId);
     db.prepare("UPDATE Orders SET Status = 'Paid' WHERE OrderId = ?").run(order.OrderId);
+    db.prepare("UPDATE Users SET IsVerified = 1, VerificationSource = CASE WHEN IsVerified = 0 THEN 'Payment' ELSE VerificationSource END WHERE UserId = ?").run(order.UserId);
 
     const items = db.prepare('SELECT * FROM OrderItems WHERE OrderId = ?').all(order.OrderId);
     const now = Date.now();
