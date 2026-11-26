@@ -263,3 +263,52 @@ test('Dashboard student details, verification, and SuperAdmin-only faculty creat
   });
   assert.equal(deletedLogin.status, 401);
 });
+
+test('WhatsApp webhook challenge verification and inbound student verification', async () => {
+  process.env.WHATSAPP_VERIFY_TOKEN = 'test_wa_verify_token';
+
+  // Invalid token rejected
+  const badChallenge = await fetch(`${baseUrl}/api/v1/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=wrong&hub.challenge=12345`);
+  assert.equal(badChallenge.status, 403);
+
+  // Valid token returns challenge string
+  const okChallenge = await fetch(`${baseUrl}/api/v1/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=test_wa_verify_token&hub.challenge=987654`);
+  assert.equal(okChallenge.status, 200);
+  assert.equal(await okChallenge.text(), '987654');
+
+  // Register a new student and verify via inbound WhatsApp webhook message
+  const waPhone = '9666665555';
+  const reg = await (await fetch(`${baseUrl}/api/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: waPhone, fullName: 'WhatsApp Student', password: 'WaPass@123' })
+  })).json();
+  assert.equal(reg.user.isVerified, false);
+
+  const codeRes = await (await fetch(`${baseUrl}/api/v1/me/whatsapp-verify-code`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${reg.accessToken}` }
+  })).json();
+  assert.ok(codeRes.code);
+
+  const hookRes = await fetch(`${baseUrl}/api/v1/webhooks/whatsapp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      entry: [{
+        changes: [{
+          value: {
+            messages: [{ from: `91${waPhone}`, text: { body: `VERIFY ${codeRes.code}` } }]
+          }
+        }]
+      }]
+    })
+  });
+  assert.equal(hookRes.status, 200);
+
+  const meAfter = await (await fetch(`${baseUrl}/api/v1/me`, {
+    headers: { Authorization: `Bearer ${reg.accessToken}` }
+  })).json();
+  assert.equal(meAfter.isVerified, true);
+  assert.equal(meAfter.verificationSource, 'WhatsApp');
+});

@@ -67,6 +67,32 @@ async function sendOtpSms(phone, otp) {
     return;
   }
 
+  if (provider === 'whatsapp') {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const templateName = process.env.WHATSAPP_OTP_TEMPLATE || 'mudgal_otp';
+    if (!token || !phoneNumberId) throw new AppError('WhatsApp Cloud API credentials missing.', 503, 'SMS_NOT_CONFIGURED');
+    const resp = await fetch(`https://graph.facebook.com/v21.0/${encodeURIComponent(phoneNumberId)}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: `91${phone}`,
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: process.env.WHATSAPP_TEMPLATE_LANG || 'en' },
+          components: [
+            { type: 'body', parameters: [{ type: 'text', text: otp }] },
+            { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: otp }] }
+          ]
+        }
+      })
+    });
+    if (!resp.ok) throw new AppError('Failed to send OTP via WhatsApp Cloud API.', 502, 'SMS_DELIVERY_FAILED');
+    return;
+  }
+
   throw new AppError(`Unsupported SMS_PROVIDER: ${provider}`, 500, 'SMS_CONFIG_ERROR');
 }
 

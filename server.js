@@ -13,6 +13,7 @@ import { createLearningRouter } from './src/routes/learning.js';
 import { createTestsRouter } from './src/routes/tests.js';
 import { createEngagementRouter } from './src/routes/engagement.js';
 import { createAdminRouter } from './src/routes/admin.js';
+import { createWhatsAppRouter } from './src/routes/whatsapp.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,6 +40,7 @@ export function createApp(dbPath) {
   api.use(createAuthRouter(db));
   api.use(createCatalogueRouter(db));
   api.use(createCommerceRouter(db));
+  api.use(createWhatsAppRouter(db));
   api.use(createLearningRouter(db));
   api.use(createTestsRouter(db));
   api.use(createEngagementRouter(db));

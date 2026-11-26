@@ -1025,6 +1025,7 @@ const app = {
             <div class="muted">Mobile: ${this.user.phone} &bull; Goal: ${this.user.targetExamName || 'Not set'}</div>
           </div>
           <div class="row">
+            ${!this.user.isVerified ? `<button class="btn btn-primary btn-sm" onclick="app.startWhatsAppVerify()">💬 Verify via WhatsApp</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="app.openGoalPicker()">Change Exam Goal</button>
             <button class="btn btn-danger btn-sm" onclick="app.logout()">Logout</button>
           </div>
@@ -1074,6 +1075,24 @@ const app = {
       document.getElementById('curPwd').value = '';
       document.getElementById('newPwd').value = '';
       alert('Password updated successfully!');
+    } catch (e) { alert(e.message); }
+  },
+
+  async startWhatsAppVerify() {
+    try {
+      const res = await this.api('/me/whatsapp-verify-code', { method: 'POST' });
+      this.showModal(`
+        <h2>Verify via WhatsApp</h2>
+        <p class="muted">Send the verification code below to our official WhatsApp number to verify your student profile:</p>
+        <div class="card" style="text-align:center;background:rgba(20,184,166,.08);">
+          <div class="muted">Your Verification Message</div>
+          <div style="font-size:1.4rem;font-weight:800;margin:6px 0;">VERIFY ${res.code}</div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <a class="btn btn-primary" href="${res.waLink}" target="_blank" rel="noopener">💬 Open WhatsApp &amp; Send</a>
+          <button class="btn btn-outline" onclick="app.closeModal();app.init()">I Sent It (Refresh)</button>
+        </div>
+      `);
     } catch (e) { alert(e.message); }
   },
 
