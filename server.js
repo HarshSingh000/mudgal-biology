@@ -52,6 +52,8 @@ export function createApp(dbPath) {
   const pub = path.join(__dirname, 'public');
   app.use(express.static(pub));
   app.get('/about', (_req, res) => res.sendFile(path.join(pub, 'about.html')));
+  app.get('/mentorship', (_req, res) => res.sendFile(path.join(pub, 'mentorship.html')));
+  app.get('/mentorship-programs', (_req, res) => res.sendFile(path.join(pub, 'mentorship.html')));
   app.get('/privacy', (_req, res) => res.sendFile(path.join(pub, 'privacy.html')));
   app.get('/terms', (_req, res) => res.sendFile(path.join(pub, 'terms.html')));
   app.get('/refund', (_req, res) => res.sendFile(path.join(pub, 'refund.html')));

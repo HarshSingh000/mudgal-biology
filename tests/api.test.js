@@ -40,7 +40,7 @@ async function login(phone) {
 }
 
 test('Public pages return 200 and protected endpoints require auth', async () => {
-  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg', '/assets/hemant-mudgal.jpg', '/assets/channel-cover.jpg']) {
+  for (const p of ['/', '/about', '/mentorship', '/mentorship-programs', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg', '/assets/hemant-mudgal.jpg', '/assets/channel-cover.jpg', '/assets/gems-mentorship.jpg', '/assets/stf-taskforce.jpg', '/assets/gems-announcement.jpg']) {
     const r = await fetch(`${baseUrl}${p}`);
     assert.equal(r.status, 200, `Expected 200 for ${p}`);
     if (p === '/') {
