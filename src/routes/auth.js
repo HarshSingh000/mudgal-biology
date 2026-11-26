@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import express from 'express';
 import { nowIso, uuid } from '../db.js';
-import { AppError, asyncHandler, createRateLimiter, issueJwt, normalizePhone, requireAuth, SECURITY_CONFIG, sha256Hex } from '../security.js';
+import { AppError, asyncHandler, createRateLimiter, hashPassword, issueJwt, normalizePhone, requireAuth, SECURITY_CONFIG, sha256Hex, verifyPassword } from '../security.js';
 
 async function sendOtpSms(phone, otp) {
   const provider = (process.env.SMS_PROVIDER || 'none').trim().toLowerCase();
@@ -113,6 +113,56 @@ export function createAuthRouter(db) {
     return { accessToken, refreshToken: rawRefresh, expiresAt, user: getProfile(userId) };
   };
 
+  const createStudentAccount = ({ phone, fullName, email = null, state = null, passwordHash = null }) => {
+    const uid = uuid();
+    db.prepare('INSERT INTO Users (UserId, Phone, Email, FullName, PasswordHash, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(uid, phone, email ? String(email).trim() : null, String(fullName || '').trim() || 'Aspirant', passwordHash, 'Active', nowIso());
+    const role = db.prepare("SELECT RoleId FROM Roles WHERE Name = 'Student'").get();
+    if (role) db.prepare('INSERT INTO UserRoles (UserId, RoleId) VALUES (?, ?)').run(uid, role.RoleId);
+    db.prepare('INSERT INTO StudentProfiles (UserId, PreferredLanguage, State, AcceptedTerms, TermsAcceptedAt) VALUES (?, ?, ?, 1, ?)')
+      .run(uid, 'en', state ? String(state).trim() : null, nowIso());
+    db.prepare('INSERT INTO NotificationPreferences (UserId) VALUES (?)').run(uid);
+    return db.prepare('SELECT * FROM Users WHERE UserId = ?').get(uid);
+  };
+
+  router.post('/auth/register', verifyIpLimiter, asyncHandler((req, res) => {
+    const phone = normalizePhone(req.body?.phone);
+    if (phone.length < 10) throw new AppError('Please enter a valid 10-digit mobile number.', 400, 'INVALID_PHONE');
+    const fullName = String(req.body?.fullName || '').trim();
+    if (!fullName) throw new AppError('Please enter your full name.', 400, 'INVALID_NAME');
+    const passwordHash = hashPassword(req.body?.password);
+
+    const existing = db.prepare('SELECT UserId FROM Users WHERE Phone = ?').get(phone);
+    if (existing) {
+      throw new AppError('This mobile number is already registered. Please sign in with your password.', 409, 'ACCOUNT_EXISTS');
+    }
+
+    const user = createStudentAccount({
+      phone,
+      fullName,
+      email: req.body?.email || null,
+      state: req.body?.state || null,
+      passwordHash
+    });
+    res.json(issueTokens(user.UserId));
+  }));
+
+  router.post('/auth/login', verifyIpLimiter, asyncHandler((req, res) => {
+    const phone = normalizePhone(req.body?.phone);
+    const password = String(req.body?.password || '');
+    if (phone.length < 10 || !password) {
+      throw new AppError('Mobile number and password are required.', 400, 'INVALID_CREDENTIALS');
+    }
+    const user = db.prepare('SELECT * FROM Users WHERE Phone = ?').get(phone);
+    if (!user || !user.PasswordHash || !verifyPassword(password, user.PasswordHash)) {
+      throw new AppError('Invalid mobile number or password.', 401, 'INVALID_CREDENTIALS');
+    }
+    if (user.Status === 'Suspended' || user.Status === 'DeletionRequested') {
+      throw new AppError('Account is inactive or suspended. Contact support.', 403, 'ACCOUNT_SUSPENDED');
+    }
+    res.json(issueTokens(user.UserId));
+  }));
+
   router.post('/auth/otp/request', otpIpLimiter, asyncHandler(async (req, res) => {
     const phone = normalizePhone(req.body?.phone);
     if (phone.length < 10) throw new AppError('Please enter a valid 10-digit mobile number.', 400, 'INVALID_PHONE');
@@ -152,14 +202,7 @@ export function createAuthRouter(db) {
 
     let user = db.prepare('SELECT * FROM Users WHERE Phone = ?').get(phone);
     if (!user) {
-      const uid = uuid();
-      const fullName = String(req.body?.fullName || '').trim() || 'Aspirant';
-      db.prepare('INSERT INTO Users (UserId, Phone, FullName, Status, CreatedAt) VALUES (?, ?, ?, ?, ?)').run(uid, phone, fullName, 'Active', nowIso());
-      const role = db.prepare("SELECT RoleId FROM Roles WHERE Name = 'Student'").get();
-      if (role) db.prepare('INSERT INTO UserRoles (UserId, RoleId) VALUES (?, ?)').run(uid, role.RoleId);
-      db.prepare('INSERT INTO StudentProfiles (UserId, PreferredLanguage, AcceptedTerms, TermsAcceptedAt) VALUES (?, ?, 1, ?)').run(uid, 'en', nowIso());
-      db.prepare('INSERT INTO NotificationPreferences (UserId) VALUES (?)').run(uid);
-      user = db.prepare('SELECT * FROM Users WHERE UserId = ?').get(uid);
+      user = createStudentAccount({ phone, fullName: req.body?.fullName });
     } else if (user.Status === 'Suspended') {
       throw new AppError('Account is suspended. Contact support.', 403, 'ACCOUNT_SUSPENDED');
     }
@@ -216,6 +259,18 @@ export function createAuthRouter(db) {
       ON CONFLICT(UserId) DO UPDATE SET TargetExamId = excluded.TargetExamId, PreferredLanguage = COALESCE(excluded.PreferredLanguage, StudentProfiles.PreferredLanguage)
     `).run(req.user.userId, exam.ExamId, preferredLanguage || 'en', nowIso());
     res.json(getProfile(req.user.userId));
+  }));
+
+  router.post('/me/password', requireAuth, asyncHandler((req, res) => {
+    const { currentPassword, newPassword } = req.body || {};
+    const user = db.prepare('SELECT * FROM Users WHERE UserId = ?').get(req.user.userId);
+    if (!user) throw new AppError('User not found.', 404, 'NOT_FOUND');
+    if (user.PasswordHash && !verifyPassword(currentPassword, user.PasswordHash)) {
+      throw new AppError('Current password is incorrect.', 401, 'INVALID_CREDENTIALS');
+    }
+    const nextHash = hashPassword(newPassword);
+    db.prepare('UPDATE Users SET PasswordHash = ? WHERE UserId = ?').run(nextHash, req.user.userId);
+    res.json({ message: 'Password updated successfully.' });
   }));
 
   router.post('/me/delete-request', requireAuth, asyncHandler((req, res) => {

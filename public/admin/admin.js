@@ -62,19 +62,30 @@ const admin = {
               <span class="badge">Mudgal Biology</span>
             </div>
             <h2 style="margin:0 0 6px;">Admin &amp; Faculty Console</h2>
-            <p style="color:var(--slate);margin-top:0;">OTP-verified staff sign in (Admin, SuperAdmin, Faculty, SupportAgent).</p>
+            <p style="color:var(--slate);margin-top:0;">Staff sign in (Admin, SuperAdmin, Faculty, SupportAgent).</p>
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
+              <button id="admTabPwd" class="btn btn-navy btn-sm" style="flex:1;" onclick="admin.switchAuthMode('pwd')">Password Login</button>
+              <button id="admTabOtp" class="btn btn-sm" style="flex:1;background:#E2E8F0;color:#0F172A;" onclick="admin.switchAuthMode('otp')">OTP Login</button>
+            </div>
             <label>Staff Phone Number</label>
             <input id="admPhone" value="9999999999" />
-            <button class="btn btn-primary" style="width:100%;" onclick="admin.requestOtp()">Request Staff OTP</button>
-            <div id="admOtpBox" style="display:none;margin-top:14px;">
-              <div id="admOtpHint" style="background:#FEF3C7;color:#92400E;padding:8px 12px;border-radius:8px;font-size:.84rem;font-weight:600;margin-bottom:10px;"></div>
-              <label>Enter 6-digit OTP</label>
-              <input id="admOtp" />
-              <button class="btn btn-navy" style="width:100%;" onclick="admin.verifyOtp()">Verify OTP &amp; Sign In</button>
+            <div id="admPwdPane">
+              <label>Password</label>
+              <input id="admPwd" type="password" placeholder="Enter staff password" />
+              <button class="btn btn-primary" style="width:100%;" onclick="admin.loginWithPassword()">Sign In &rarr;</button>
+            </div>
+            <div id="admOtpPane" style="display:none;">
+              <button class="btn btn-primary" style="width:100%;" onclick="admin.requestOtp()">Request Staff OTP</button>
+              <div id="admOtpBox" style="display:none;margin-top:14px;">
+                <div id="admOtpHint" style="background:#FEF3C7;color:#92400E;padding:8px 12px;border-radius:8px;font-size:.84rem;font-weight:600;margin-bottom:10px;"></div>
+                <label>Enter 6-digit OTP</label>
+                <input id="admOtp" />
+                <button class="btn btn-navy" style="width:100%;" onclick="admin.verifyOtp()">Verify OTP &amp; Sign In</button>
+              </div>
             </div>
             <p id="admErr" style="color:var(--danger);font-weight:600;margin-top:10px;"></p>
             <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:.82rem;color:var(--slate);">
-              Sandbox Staff: <code>9999999999</code> (Admin) &bull; <code>9811112222</code> (Faculty) &bull; <code>9811114444</code> (Support)
+              Staff Phones: <code>9999999999</code> (Admin) &bull; <code>9811112222</code> (Faculty) &bull; <code>9811114444</code> (Support)
               <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
                 <a href="/">Website</a> <a href="/app">Student App</a> <a href="/about">About Us</a> <a href="/privacy">Privacy Policy</a>
               </div>
@@ -114,6 +125,43 @@ const admin = {
     else if (this.tab === 'catalogue') this.loadCatalogue();
     else if (this.tab === 'tests') this.loadTests();
     else if (this.tab === 'operations') this.loadOperations();
+  },
+
+  switchAuthMode(mode) {
+    document.getElementById('admErr').textContent = '';
+    const isPwd = mode === 'pwd';
+    document.getElementById('admPwdPane').style.display = isPwd ? 'block' : 'none';
+    document.getElementById('admOtpPane').style.display = isPwd ? 'none' : 'block';
+    document.getElementById('admTabPwd').className = isPwd ? 'btn btn-navy btn-sm' : 'btn btn-sm';
+    document.getElementById('admTabOtp').className = !isPwd ? 'btn btn-navy btn-sm' : 'btn btn-sm';
+    if (isPwd) {
+      document.getElementById('admTabPwd').style.cssText = 'flex:1;';
+      document.getElementById('admTabOtp').style.cssText = 'flex:1;background:#E2E8F0;color:#0F172A;';
+    } else {
+      document.getElementById('admTabOtp').style.cssText = 'flex:1;';
+      document.getElementById('admTabPwd').style.cssText = 'flex:1;background:#E2E8F0;color:#0F172A;';
+    }
+  },
+
+  async loginWithPassword() {
+    try {
+      document.getElementById('admErr').textContent = '';
+      const auth = await this.api('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          phone: document.getElementById('admPhone').value,
+          password: document.getElementById('admPwd').value
+        })
+      });
+      if (!auth.user.roles.some(r => ['Admin', 'SuperAdmin', 'Faculty', 'SupportAgent'].includes(r))) {
+        throw new Error('This account does not have staff privileges.');
+      }
+      this.token = auth.accessToken;
+      this.user = auth.user;
+      localStorage.setItem('mb_adm_token', auth.accessToken);
+      localStorage.setItem('mb_adm_user', JSON.stringify(auth.user));
+      this.render();
+    } catch (e) { document.getElementById('admErr').textContent = e.message; }
   },
 
   async requestOtp() {

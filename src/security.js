@@ -80,6 +80,24 @@ export function sha256Hex(raw) {
   return crypto.createHash('sha256').update(String(raw)).digest('hex');
 }
 
+export function hashPassword(password) {
+  const pwd = String(password || '');
+  if (pwd.length < 6) throw new AppError('Password must be at least 6 characters long.', 400, 'WEAK_PASSWORD');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derived = crypto.scryptSync(pwd, salt, 64).toString('hex');
+  return `scrypt:${salt}:${derived}`;
+}
+
+export function verifyPassword(password, storedHash) {
+  if (!storedHash || !String(storedHash).startsWith('scrypt:')) return false;
+  const [, salt, hex] = String(storedHash).split(':');
+  if (!salt || !hex) return false;
+  const derived = crypto.scryptSync(String(password || ''), salt, 64);
+  const expected = Buffer.from(hex, 'hex');
+  if (derived.length !== expected.length) return false;
+  return crypto.timingSafeEqual(derived, expected);
+}
+
 export function computeHmacSha256(payload, secret) {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex').toLowerCase();
 }

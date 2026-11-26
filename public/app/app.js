@@ -126,33 +126,106 @@ const app = {
 
   renderAuth(view) {
     view.innerHTML = `
-      <div class="card" style="max-width:460px;margin:28px auto;">
+      <div class="card" style="max-width:470px;margin:28px auto;">
         <div class="row" style="margin-bottom:8px;">
-          <div class="brand-mark">MB</div>
+          <img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" />
           <span class="badge">Mudgal Biology</span>
         </div>
         <h2 style="margin:6px 0;">${this.t('Welcome to Mudgal Biology', 'मुदगल बायोलॉजी में स्वागत है')}</h2>
-        <p class="muted">${this.t('Sign in with your mobile number to access live classes, smart e-books, flashcards & mock tests.', 'लाइव क्लासेस, स्मार्ट ई-बुक्स, फ्लैशकार्ड्स और मॉक टेस्ट के लिए मोबाइल OTP से लॉग इन करें।')}</p>
-        <div style="margin:14px 0;">
+        <p class="muted">${this.t('Sign in or register free with your mobile number & password to access lectures, smart e-books, flashcards & mock tests.', 'लाइव क्लासेस, स्मार्ट ई-बुक्स, फ्लैशकार्ड्स और मॉक टेस्ट के लिए मोबाइल नंबर व पासवर्ड से लॉग इन या रजिस्टर करें।')}</p>
+
+        <div class="row" style="gap:6px;margin:14px 0;">
+          <button id="tabAuthLogin" class="chip active" style="flex:1;" onclick="app.switchAuthTab('login')">Sign In</button>
+          <button id="tabAuthReg" class="chip" style="flex:1;" onclick="app.switchAuthTab('register')">New Register</button>
+          <button id="tabAuthOtp" class="chip" style="flex:1;" onclick="app.switchAuthTab('otp')">OTP Login</button>
+        </div>
+
+        <div id="paneLogin">
+          <label class="muted">10-digit Mobile Number</label>
+          <input id="loginPhone" placeholder="Enter 10-digit phone" />
+          <label class="muted" style="margin-top:10px;display:block;">Password</label>
+          <input id="loginPassword" type="password" placeholder="Enter your password" />
+          <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="app.loginWithPassword()">Sign In &rarr;</button>
+          <div class="muted" style="margin-top:10px;font-size:.82rem;">New student? <a href="#" onclick="event.preventDefault();app.switchAuthTab('register')">Create a free account</a></div>
+        </div>
+
+        <div id="paneRegister" style="display:none;">
+          <label class="muted">Full Name</label>
+          <input id="regName" placeholder="e.g. Priya Sharma" />
+          <label class="muted" style="margin-top:10px;display:block;">10-digit Mobile Number</label>
+          <input id="regPhone" placeholder="Enter 10-digit mobile number" />
+          <label class="muted" style="margin-top:10px;display:block;">Create Password (min 6 characters)</label>
+          <input id="regPassword" type="password" placeholder="At least 6 characters" />
+          <label class="muted" style="margin-top:10px;display:block;">Email (optional)</label>
+          <input id="regEmail" type="email" placeholder="you@example.com" />
+          <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="app.registerWithPassword()">Create Free Account &rarr;</button>
+        </div>
+
+        <div id="paneOtp" style="display:none;">
           <label class="muted">10-digit Mobile Number</label>
           <input id="phoneInput" value="9876543210" placeholder="Enter 10-digit phone" />
+          <button class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="app.requestOtp()">Request OTP</button>
+          <div id="otpStep" style="display:none;margin-top:16px;">
+            <div id="devOtpHint" class="badge-amber" style="display:inline-block;margin-bottom:10px;"></div>
+            <label class="muted">Enter 6-digit OTP</label>
+            <input id="otpInput" placeholder="6-digit OTP" />
+            <label class="muted" style="margin-top:10px;display:block;">Aspirant Full Name</label>
+            <input id="nameInput" value="Aarav Sharma" />
+            <button class="btn btn-navy" style="width:100%;margin-top:12px;" onclick="app.verifyOtp()">Verify &amp; Continue</button>
+          </div>
         </div>
-        <button class="btn btn-primary" style="width:100%;" onclick="app.requestOtp()">Request OTP</button>
-        <div id="otpStep" style="display:none;margin-top:16px;">
-          <div id="devOtpHint" class="badge-amber" style="display:inline-block;margin-bottom:10px;"></div>
-          <label class="muted">Enter 6-digit OTP</label>
-          <input id="otpInput" placeholder="6-digit OTP" />
-          <label class="muted" style="margin-top:10px;display:block;">Aspirant Full Name</label>
-          <input id="nameInput" value="Aarav Sharma" />
-          <button class="btn btn-navy" style="width:100%;margin-top:12px;" onclick="app.verifyOtp()">Verify &amp; Continue</button>
-        </div>
+
         <p id="authErr" style="color:var(--danger);font-size:.88rem;margin-top:10px;"></p>
         <div class="muted" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:.8rem;">
           By continuing, you consent to our <a href="/terms" target="_blank">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.
-          <div style="margin-top:6px;"><a href="/about">About Mudgal Biology</a> &bull; <a href="/contact">Support</a> &bull; <a href="/admin">Staff Admin Login</a></div>
+          <div style="margin-top:6px;"><a href="/mentorship">Mentorship (GEMS &amp; STF)</a> &bull; <a href="/about">About Mudgal Biology</a> &bull; <a href="/contact">Support</a> &bull; <a href="/admin">Staff Admin Login</a></div>
         </div>
       </div>
     `;
+  },
+
+  switchAuthTab(tab) {
+    document.getElementById('authErr').textContent = '';
+    document.getElementById('paneLogin').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('paneRegister').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('paneOtp').style.display = tab === 'otp' ? 'block' : 'none';
+    document.getElementById('tabAuthLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('tabAuthReg').classList.toggle('active', tab === 'register');
+    document.getElementById('tabAuthOtp').classList.toggle('active', tab === 'otp');
+  },
+
+  async loginWithPassword() {
+    try {
+      document.getElementById('authErr').textContent = '';
+      const auth = await this.api('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          phone: document.getElementById('loginPhone').value,
+          password: document.getElementById('loginPassword').value
+        })
+      });
+      this.saveAuth(auth);
+      this.refreshNotifCount();
+      this.render();
+    } catch (e) { document.getElementById('authErr').textContent = e.message; }
+  },
+
+  async registerWithPassword() {
+    try {
+      document.getElementById('authErr').textContent = '';
+      const auth = await this.api('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: document.getElementById('regName').value,
+          phone: document.getElementById('regPhone').value,
+          password: document.getElementById('regPassword').value,
+          email: document.getElementById('regEmail').value || null
+        })
+      });
+      this.saveAuth(auth);
+      this.refreshNotifCount();
+      this.render();
+    } catch (e) { document.getElementById('authErr').textContent = e.message; }
   },
 
   async requestOtp() {
@@ -964,6 +1037,14 @@ const app = {
         ${orders.map(o => `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong>₹${o.totalAmount}</strong> — ${o.items.map(i=>i.productTitle).join(', ')} <span class="badge">${o.status}</span></div>`).join('') || '<span class="muted">No orders yet.</span>'}
       </div>
       <div class="card">
+        <h3>Change / Set Password</h3>
+        <div class="grid" style="gap:10px;">
+          <input id="curPwd" type="password" placeholder="Current password (leave blank if OTP-only user)" />
+          <input id="newPwd" type="password" placeholder="New password (min 6 characters)" />
+        </div>
+        <button class="btn btn-navy btn-sm" style="margin-top:10px;" onclick="app.updatePassword()">Update Password</button>
+      </div>
+      <div class="card">
         <h3>Policies, Portals &amp; Account</h3>
         <div class="row" style="margin-bottom:12px;">
           <a class="btn btn-outline btn-sm" href="/about" target="_blank">About Us</a>
@@ -976,6 +1057,21 @@ const app = {
         <button class="btn btn-danger btn-sm" onclick="app.requestDeletion()">Request Account Deletion</button>
       </div>
     `;
+  },
+
+  async updatePassword() {
+    try {
+      await this.api('/me/password', {
+        method: 'POST',
+        body: JSON.stringify({
+          currentPassword: document.getElementById('curPwd').value,
+          newPassword: document.getElementById('newPwd').value
+        })
+      });
+      document.getElementById('curPwd').value = '';
+      document.getElementById('newPwd').value = '';
+      alert('Password updated successfully!');
+    } catch (e) { alert(e.message); }
   },
 
   async requestDeletion() {

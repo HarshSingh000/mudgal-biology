@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
+import { hashPassword } from './security.js';
+
 export const uuid = () => crypto.randomUUID();
 export const nowIso = () => new Date().toISOString();
 
@@ -15,6 +17,7 @@ export function openDatabase(dbPath) {
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   initSchema(db);
   seedIfEmpty(db);
+  syncStaffPasswords(db);
   return db;
 }
 
@@ -25,6 +28,7 @@ function initSchema(db) {
       Phone TEXT UNIQUE NOT NULL,
       Email TEXT,
       FullName TEXT NOT NULL,
+      PasswordHash TEXT,
       Status TEXT NOT NULL DEFAULT 'Active',
       CreatedAt TEXT NOT NULL
     );
@@ -353,6 +357,20 @@ function initSchema(db) {
       CreatedAt TEXT NOT NULL
     );
   `);
+  const cols = db.prepare('PRAGMA table_info(Users)').all();
+  if (!cols.some((c) => c.name === 'PasswordHash')) {
+    db.exec('ALTER TABLE Users ADD COLUMN PasswordHash TEXT');
+  }
+}
+
+function syncStaffPasswords(db) {
+  const adminPwd = process.env.ADMIN_PASSWORD;
+  if (adminPwd && adminPwd.length >= 6) {
+    db.prepare("UPDATE Users SET PasswordHash = ? WHERE Phone = '9999999999'").run(hashPassword(adminPwd));
+  } else if ((process.env.NODE_ENV || 'development') !== 'production') {
+    const devHash = hashPassword('Mudgal@123');
+    db.prepare("UPDATE Users SET PasswordHash = ? WHERE PasswordHash IS NULL AND Phone IN ('9876543210', '9811112222', '9811113333', '9811114444', '9999999999', '8888888888')").run(devHash);
+  }
 }
 
 export function hasActiveEntitlement(db, userId, courseId) {

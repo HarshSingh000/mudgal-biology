@@ -139,3 +139,56 @@ test('Production config guard and Razorpay webhook signature verification', asyn
   });
   assert.equal(badRzp.status, 401);
 });
+
+test('Free mobile + password registration, duplicate protection, login, and password change', async () => {
+  const phone = '9123456789';
+  const regRes = await fetch(`${baseUrl}/api/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, fullName: 'Priya Sharma', password: 'Biology@2026', email: 'priya@example.in' })
+  });
+  assert.equal(regRes.status, 200);
+  const regData = await regRes.json();
+  assert.ok(regData.accessToken);
+  assert.equal(regData.user.phone, phone);
+
+  // Duplicate phone registration blocked
+  const dupRes = await fetch(`${baseUrl}/api/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, fullName: 'Attacker', password: 'OtherPassword1' })
+  });
+  assert.equal(dupRes.status, 409);
+
+  // Wrong password rejected
+  const badLogin = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, password: 'WrongPassword' })
+  });
+  assert.equal(badLogin.status, 401);
+
+  // Valid password login works
+  const okLogin = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, password: 'Biology@2026' })
+  });
+  assert.equal(okLogin.status, 200);
+  const loginData = await okLogin.json();
+  assert.equal((await fetch(`${baseUrl}/api/v1/me`, { headers: { Authorization: `Bearer ${loginData.accessToken}` } })).status, 200);
+
+  // Update password and verify login with new password
+  const chg = await fetch(`${baseUrl}/api/v1/me/password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${loginData.accessToken}` },
+    body: JSON.stringify({ currentPassword: 'Biology@2026', newPassword: 'NewBioPass@99' })
+  });
+  assert.equal(chg.status, 200);
+  const okNew = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, password: 'NewBioPass@99' })
+  });
+  assert.equal(okNew.status, 200);
+});
