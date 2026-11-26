@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mudgal Biology — NEET Biology &amp; Competitive Exam Prep</title>
+  <link rel="stylesheet" href="/site.css" />
+  <style>
+    .hero { background: radial-gradient(circle at top right, rgba(20,184,166,.22), transparent 45%), linear-gradient(135deg, var(--navy) 0%, #192E52 100%); color: #fff; padding: 60px 24px 68px; }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 36px; align-items: center; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(20,184,166,.16); color: #5EEAD4; border: 1px solid rgba(20,184,166,.35); padding: 5px 13px; border-radius: 999px; font-size: .82rem; font-weight: 600; margin-bottom: 14px; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.14; margin: 0 0 16px; }
+    .hero p { color: #CBD5E1; font-size: 1.05rem; margin: 0 0 24px; max-width: 600px; }
+    .portal-box { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 18px; padding: 22px; backdrop-filter: blur(10px); }
+    .portal-card { background: rgba(15,23,42,.55); border: 1px solid rgba(255,255,255,.10); border-radius: 14px; padding: 16px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .price { font-size: 1.25rem; font-weight: 800; color: var(--navy); margin-top: 12px; }
+    @media (max-width: 840px) { .hero-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav">
+      <a class="brand" href="/"><div class="brand-icon">MB</div><span>Mudgal Biology</span></a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/#courses" class="nav-link">Batches</a>
+        <a href="/about" class="nav-link">About Us</a>
+        <a href="/privacy" class="nav-link">Privacy Policy</a>
+        <a href="/contact" class="nav-link">Contact</a>
+        <a href="/admin" class="btn btn-ghost">Admin Portal</a>
+        <a href="/app" class="btn btn-primary">Student App &rarr;</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="pill">🧬 NEET Biology &bull; SSC &bull; UPSC &bull; Banking &bull; State PSC</span>
+        <h1>Learn Smarter with Mudgal Biology</h1>
+        <p>Live interactive classes, speed-controlled HD lectures, smart e-books, active-recall flashcards, and All-India mock tests — with secure OTP authentication and role-based access across every surface.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="/app" class="btn btn-primary">Open Student App &rarr;</a>
+          <a href="/admin" class="btn btn-amber">Open Admin Portal &rarr;</a>
+        </div>
+      </div>
+
+      <div class="portal-box">
+        <strong style="font-size:1.05rem;">Platform Portals (Authorized Access)</strong>
+        <div class="portal-card">
+          <div>
+            <strong>📱 Student Learning App</strong>
+            <div style="font-size:.83rem;color:#CBD5E1;">OTP Login: <code>9876543210</code> &bull; Courses, Mock Tests &amp; E-Books</div>
+          </div>
+          <a href="/app" class="btn btn-primary">Launch App</a>
+        </div>
+        <div class="portal-card">
+          <div>
+            <strong>🛡️ Admin &amp; Faculty Portal</strong>
+            <div style="font-size:.83rem;color:#CBD5E1;">Staff OTP Login: <code>9999999999</code> (Admin) / <code>9811112222</code> (Faculty)</div>
+          </div>
+          <a href="/admin" class="btn btn-amber">Admin Login</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="exams" class="section">
+    <div class="container">
+      <h2 style="margin:0 0 6px;color:var(--navy);">Exam Categories</h2>
+      <p style="margin:0 0 24px;color:var(--slate);">Structured learning paths tailored for Biology, Medical, and Government Exams.</p>
+      <div id="examGrid" class="grid-4"><div class="card">Loading exams...</div></div>
+    </div>
+  </section>
+
+  <section id="courses" class="section" style="padding-top:0;">
+    <div class="container">
+      <h2 style="margin:0 0 6px;color:var(--navy);">Featured Batches on Mudgal Biology</h2>
+      <p style="margin:0 0 24px;color:var(--slate);">Preview free demo lessons or enroll via server-verified checkout.</p>
+      <div id="courseGrid" class="grid-4"><div class="card">Loading batches...</div></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div>
+        <h4>Mudgal Biology</h4>
+        <p style="margin:0;color:#CBD5E1;">Affordable, structured Biology &amp; Government Exam preparation for aspirants across India.</p>
+      </div>
+      <div>
+        <h4>Portals</h4>
+        <a href="/app">Student Web App</a>
+        <a href="/admin">Admin &amp; Faculty Portal</a>
+        <a href="/swagger">REST API Docs (OpenAPI)</a>
+      </div>
+      <div>
+        <h4>Company &amp; Help</h4>
+        <a href="/about">About Us</a>
+        <a href="/contact">Contact &amp; Support</a>
+      </div>
+      <div>
+        <h4>Legal &amp; Trust</h4>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms &amp; Conditions</a>
+        <a href="/refund">Refund &amp; Cancellation Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Mudgal Biology. All rights reserved.</span>
+      <span>Protected by JWT Auth, Role-Based Access Control &amp; Signed Media URLs.</span>
+    </div>
+  </footer>
+
+  <script>
+    async function loadLanding() {
+      try {
+        const [examsRes, coursesRes] = await Promise.all([fetch('/api/v1/exams'), fetch('/api/v1/courses')]);
+        const exams = await examsRes.json();
+        const courses = (await coursesRes.json()).items || [];
+        document.getElementById('examGrid').innerHTML = exams.map(e => `
+          <div class="card" style="margin:0;">
+            <span class="exam-code">${e.code}</span>
+            <h3 style="margin:0 0 6px;color:var(--navy);">${e.name}</h3>
+            <p style="margin:0;color:var(--slate);font-size:.9rem;">${e.description}</p>
+          </div>
+        `).join('');
+        document.getElementById('courseGrid').innerHTML = courses.map(c => `
+          <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <span class="exam-code">${(c.examCodes || []).join(' / ')} &bull; ${c.language}</span>
+              <h3 style="margin:0 0 6px;color:var(--navy);font-size:1.05rem;">${c.title}</h3>
+              <p style="margin:0;color:var(--slate);font-size:.9rem;">${c.description}</p>
+            </div>
+            <div>
+              <div class="price">₹${c.price} <span style="font-size:.82rem;font-weight:500;color:#64748B;">/ ${c.validityDays} days</span></div>
+              <a href="/app" class="btn btn-primary" style="width:100%;margin-top:12px;">Preview &amp; Enroll</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+    loadLanding();
+  </script>
+</body>
+</html>
