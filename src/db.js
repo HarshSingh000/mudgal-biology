@@ -409,14 +409,13 @@ function seedIfEmpty(db) {
   const exams = [
     { id: uuid(), name: 'RPSC 2nd Grade Science', code: 'RPSC_2ND', desc: 'Graduation Biology Series, Invertebrates, Chordates, Teaching Methods & GEMS Mentorship' },
     { id: uuid(), name: 'RPSC 1st Grade Biology', code: 'RPSC_1ST', desc: 'School Lecturer Biology — Genetics, Developmental Biology, Ecology & RPSC PYQs' },
-    { id: uuid(), name: 'URATPG (Biology)', code: 'URATPG_BIO', desc: 'University of Rajasthan M.Sc. Biology Entrance — Botany, Zoology & Life Sciences' },
     { id: uuid(), name: 'NEET (Bio Focused)', code: 'NEET_BIO', desc: 'NCERT Line-by-Line Botany & Zoology with Short Tricks for 360/360 in NEET Biology' }
   ];
   for (const e of exams) {
     db.prepare('INSERT INTO Exams (ExamId, Name, Code, Description, IsActive) VALUES (?, ?, ?, ?, 1)')
       .run(e.id, e.name, e.code, e.desc);
   }
-  const [rpsc2nd, rpsc1st, uratpg, neetBio] = exams;
+  const [rpsc2nd, rpsc1st, neetBio] = exams;
 
   db.prepare(`INSERT INTO StudentProfiles (UserId, PreferredLanguage, State, TargetExamId, AcceptedTerms, TermsAcceptedAt) VALUES (?, 'en', 'Rajasthan', ?, 1, ?)`)
     .run(student.id, rpsc2nd.id, nowIso());
@@ -434,7 +433,7 @@ function seedIfEmpty(db) {
   }
 
   // Courses
-  const rpsc2ndCourseId = uuid(), rpsc1stCourseId = uuid(), uratpgCourseId = uuid(), neetCourseId = uuid();
+  const rpsc2ndCourseId = uuid(), rpsc1stCourseId = uuid(), neetCourseId = uuid();
   const courses = [
     {
       id: rpsc2ndCourseId, title: 'RPSC 2nd Grade Science 2027 — Graduation Biology & GEMS Mentorship',
@@ -449,13 +448,6 @@ function seedIfEmpty(db) {
       desc: 'In-depth Genetics, DNA Polymerase & Molecular Biology, Developmental Biology, Ecology, and previous year paper solutions with short-note PDFs.',
       lang: 'Bilingual (HI/EN)', type: 'Live + Recorded', price: 2499, days: 365, examId: rpsc1st.id, facId: faculty1.id,
       faqs: JSON.stringify([{ Question: 'Are RPSC PYQs solved topic-wise?', Answer: 'Yes, every unit includes previous year RPSC Biology questions and detailed solutions.' }])
-    },
-    {
-      id: uratpgCourseId, title: 'URATPG (Biology) M.Sc. Entrance Crash & PYQ Batch',
-      slug: 'uratpg-biology-entrance-batch',
-      desc: 'Focused preparation for University of Rajasthan PG Biology Entrance covering Plant Physiology, Krebs Cycle, Genetics, and high-yield MCQs.',
-      lang: 'Bilingual (HI/EN)', type: 'Target Batch', price: 1199, days: 180, examId: uratpg.id, facId: faculty2.id,
-      faqs: JSON.stringify([{ Question: 'Are bilingual notes included?', Answer: 'Yes, downloadable smart e-books and short tricks are included.' }])
     },
     {
       id: neetCourseId, title: 'NEET (Bio Focused) — NCERT Line-by-Line 360/360 Batch',
@@ -497,16 +489,14 @@ function seedIfEmpty(db) {
     { title: 'Nervous System in Vertebrates — Graduation Biology Series', assetKey: '6F3-zdr6-AM', dur: 2340, preview: false },
     { title: 'Locomotion in Invertebrates (Part 1 & 2)', assetKey: 'LRcwAYxZxTE', dur: 1980, preview: false }
   ]);
-  addLessonSet(rpsc1stCourseId, 'Module 1: Molecular Biology & RPSC Strategy', 'Chapter 1: DNA Replication & Enzymes', [
+  addLessonSet(rpsc1stCourseId, 'Module 1: Molecular Biology, Genetics & RPSC Strategy', 'Chapter 1: DNA Replication, Krebs Cycle & PYQs', [
     { title: 'Types of DNA Polymerase Enzyme — RPSC PYQ Lecture (Free Demo)', assetKey: 'HoMQLU1ucks', dur: 1500, preview: true, pdfTitle: 'DNA Polymerase Comparison Table.pdf', pdfKey: 'mudgal_dna_polymerase.pdf', resType: 'EBook' },
+    { title: 'Krebs Cycle NADH Yield & RPSC PYQ Concept', assetKey: 'a2l5Q3qI6Hw', dur: 960, preview: false, pdfTitle: 'Krebs Cycle & Glycolysis Short Tricks.pdf', pdfKey: 'mudgal_krebs_cycle.pdf', resType: 'EBook' },
     { title: 'GEMS Mentorship & Complete RPSC Biology Roadmap', assetKey: '7t_IjBOSF1w', dur: 1620, preview: false, pdfTitle: 'RPSC Biology Syllabus & PYQ Planner.pdf', pdfKey: 'mudgal_rpsc_planner.pdf' }
   ]);
-  addLessonSet(uratpgCourseId, 'Module 1: Bioenergetics & Genetics', 'Chapter 1: Krebs Cycle & Mendelian Crosses', [
-    { title: 'Krebs Cycle NADH Yield & RPSC PYQ Concept (Free Demo)', assetKey: 'a2l5Q3qI6Hw', dur: 960, preview: true, pdfTitle: 'Krebs Cycle & Glycolysis Short Tricks.pdf', pdfKey: 'mudgal_krebs_cycle.pdf', resType: 'EBook' },
-    { title: 'Dihybrid Cross & Genetics High-Yield PYQs', assetKey: 'WjTyNIY11fw', dur: 1440, preview: false }
-  ]);
-  addLessonSet(neetCourseId, 'Module 1: Neural Control & Exam Strategy', 'Chapter 1: Types of Nerves & Smart Revision', [
+  addLessonSet(neetCourseId, 'Module 1: Neural Control, Genetics & Exam Strategy', 'Chapter 1: Types of Nerves & Dihybrid Cross', [
     { title: 'Types of Nerves — Paper Solution & NCERT Tricks (Free Demo)', assetKey: '7dkkv4kWqQU', dur: 1320, preview: true, pdfTitle: 'NCERT Neural Control Mind Map.pdf', pdfKey: 'mudgal_nerves_mindmap.pdf', resType: 'EBook' },
+    { title: 'Dihybrid Cross & Mendelian Genetics Short Tricks', assetKey: 'WjTyNIY11fw', dur: 1440, preview: false },
     { title: 'Nervous System in Invertebrates & Comparative Bio', assetKey: 'Hsoqc1sZ6Bc', dur: 1920, preview: false }
   ]);
 
@@ -515,12 +505,12 @@ function seedIfEmpty(db) {
   db.prepare(`INSERT INTO SubscriptionPlans (PlanId, Name, Description, Price, Currency, DurationDays, Status) VALUES (?, ?, ?, 2999, 'INR', 365, 'Active')`)
     .run(gemsPassId, 'RPSC GEMS Combo Pass (1st + 2nd Grade Biology)', 'Unlock both RPSC 2nd Grade Science Graduation Biology & RPSC 1st Grade Biology batches + GEMS Test Series.');
   db.prepare(`INSERT INTO SubscriptionPlans (PlanId, Name, Description, Price, Currency, DurationDays, Status) VALUES (?, ?, ?, 3999, 'INR', 365, 'Active')`)
-    .run(allBioPassId, 'Mudgal Biology All-Exam Pass (12 Months)', 'Full access to RPSC 1st & 2nd Grade, URATPG Biology, and NEET Bio Focused batches.');
-  for (const [pid, cid] of [[gemsPassId, rpsc2ndCourseId], [gemsPassId, rpsc1stCourseId], [allBioPassId, rpsc2ndCourseId], [allBioPassId, rpsc1stCourseId], [allBioPassId, uratpgCourseId], [allBioPassId, neetCourseId]]) {
+    .run(allBioPassId, 'Mudgal Biology All-Exam Pass (12 Months)', 'Full access to RPSC 1st & 2nd Grade Biology and NEET Bio Focused batches.');
+  for (const [pid, cid] of [[gemsPassId, rpsc2ndCourseId], [gemsPassId, rpsc1stCourseId], [allBioPassId, rpsc2ndCourseId], [allBioPassId, rpsc1stCourseId], [allBioPassId, neetCourseId]]) {
     db.prepare('INSERT INTO SubscriptionPlanCourses (PlanId, CourseId) VALUES (?, ?)').run(pid, cid);
   }
 
-  // Demo student entitlements: RPSC 2nd Grade + NEET Bio enrolled; RPSC 1st Grade & URATPG locked for purchase testing
+  // Demo student entitlements: RPSC 2nd Grade + NEET Bio enrolled; RPSC 1st Grade locked for purchase testing
   for (const cid of [rpsc2ndCourseId, neetCourseId]) {
     db.prepare(`INSERT INTO Entitlements (EntitlementId, UserId, CourseId, StartsAt, ExpiresAt, SourceType, SourceId, Status) VALUES (?, ?, ?, ?, ?, 'ManualGrant', ?, 'Active')`)
       .run(uuid(), student.id, cid, isoOffset(-3 * DAY), isoOffset(360 * DAY), uuid());

@@ -40,7 +40,7 @@ async function login(phone) {
 }
 
 test('Public pages return 200 and protected endpoints require auth', async () => {
-  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg', '/assets/hemant-mudgal.jpg']) {
+  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg', '/assets/hemant-mudgal.jpg', '/assets/channel-cover.jpg']) {
     const r = await fetch(`${baseUrl}${p}`);
     assert.equal(r.status, 200, `Expected 200 for ${p}`);
     if (p === '/') {
@@ -60,10 +60,10 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
   // Student blocked from admin
   assert.equal((await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: authHeaders })).status, 403);
 
-  // Find URATPG Biology course (initially locked)
-  const courses = await (await fetch(`${baseUrl}/api/v1/courses?search=URATPG`)).json();
-  const uratpg = courses.items.find((c) => c.title.includes('URATPG'));
-  const cur = await (await fetch(`${baseUrl}/api/v1/courses/${uratpg.courseId}/curriculum`, { headers: authHeaders })).json();
+  // Find RPSC 1st Grade Biology course (initially locked)
+  const courses = await (await fetch(`${baseUrl}/api/v1/courses?search=1st`)).json();
+  const rpsc1st = courses.items.find((c) => c.title.includes('RPSC 1st Grade'));
+  const cur = await (await fetch(`${baseUrl}/api/v1/courses/${rpsc1st.courseId}/curriculum`, { headers: authHeaders })).json();
   const lessons = cur.modules.flatMap((m) => m.chapters).flatMap((ch) => ch.lessons);
   const preview = lessons.find((l) => l.isPreview);
   const paid = lessons.find((l) => !l.isPreview);
@@ -73,8 +73,8 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
 
   // Idempotent order + checkout + HMAC webhook
   const idem = `node_idem_${Date.now()}`;
-  const o1 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: uratpg.courseId, idempotencyKey: idem }) })).json();
-  const o2 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: uratpg.courseId, idempotencyKey: idem }) })).json();
+  const o1 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: rpsc1st.courseId, idempotencyKey: idem }) })).json();
+  const o2 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: rpsc1st.courseId, idempotencyKey: idem }) })).json();
   assert.equal(o1.orderId, o2.orderId);
 
   const sess = await (await fetch(`${baseUrl}/api/v1/payments/checkout-session`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ orderId: o1.orderId }) })).json();
@@ -94,7 +94,7 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
     assert.equal(r.status, 200);
   }
   const ents = await (await fetch(`${baseUrl}/api/v1/me/entitlements`, { headers: authHeaders })).json();
-  assert.equal(ents.filter((e) => e.courseId === uratpg.courseId).length, 1);
+  assert.equal(ents.filter((e) => e.courseId === rpsc1st.courseId).length, 1);
   assert.equal((await fetch(`${baseUrl}/api/v1/lessons/${paid.lessonId}/playback`, { headers: authHeaders })).status, 200);
 
   // Mock test scoring (+2.0 - 0.5 = 1.5)
