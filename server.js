@@ -5,7 +5,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { openDatabase, nowIso, uuid } from './src/db.js';
-import { AppError } from './src/security.js';
+import { AppError, assertProductionConfig } from './src/security.js';
 import { createAuthRouter } from './src/routes/auth.js';
 import { createCatalogueRouter } from './src/routes/catalogue.js';
 import { createCommerceRouter } from './src/routes/commerce.js';
@@ -20,8 +20,12 @@ export function createApp(dbPath) {
   const db = openDatabase(dbPath);
   const app = express();
 
+  app.set('trust proxy', 1);
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors());
+  const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+    : true;
+  app.use(cors({ origin: allowedOrigins }));
   app.use(express.json({
     limit: '2mb',
     verify: (req, _res, buf) => { req.rawBody = buf.toString('utf8'); }
@@ -86,6 +90,7 @@ export function createApp(dbPath) {
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
+  assertProductionConfig();
   const port = Number(process.env.PORT || 3000);
   const { app, runSweep } = createApp();
   const timer = setInterval(runSweep, 60_000);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createApp } from '../server.js';
-import { computeHmacSha256, SECURITY_CONFIG } from '../src/security.js';
+import { assertProductionConfig, computeHmacSha256, SECURITY_CONFIG } from '../src/security.js';
 
 const { app, db } = createApp(':memory:');
 let server;
@@ -114,4 +114,25 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
   const admin = await login('9999999999');
   const admHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.accessToken}` };
   assert.equal((await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: admHeaders })).status, 200);
+});
+
+test('Production config guard and Razorpay webhook signature verification', async () => {
+  assert.throws(
+    () => assertProductionConfig({ NODE_ENV: 'production' }),
+    /Invalid production configuration/
+  );
+  assert.doesNotThrow(() => assertProductionConfig({
+    NODE_ENV: 'production',
+    JWT_SECRET: 'A_VERY_STRONG_RANDOM_SECRET_KEY_OVER_32_CHARS_LONG',
+    WEBHOOK_SECRET: 'STRONG_WEBHOOK_SECRET_12345',
+    MEDIA_SIGNING_SECRET: 'STRONG_MEDIA_SECRET_12345'
+  }));
+
+  // Razorpay webhook rejects invalid signature and accepts valid x-razorpay-signature
+  const badRzp = await fetch(`${baseUrl}/api/v1/payments/webhooks/razorpay`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-razorpay-signature': 'invalid' },
+    body: JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { order_id: 'order_missing' } } } })
+  });
+  assert.equal(badRzp.status, 401);
 });

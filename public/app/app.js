@@ -421,6 +421,10 @@ const app = {
         method: 'POST',
         body: JSON.stringify({ orderId: order.orderId })
       });
+      if (session.provider === 'Razorpay' && session.keyId) {
+        await this.openRazorpayCheckout(session, order, title);
+        return;
+      }
       this.showModal(`
         <h2>Secure Server-Verified Checkout</h2>
         <p>Item: <strong>${title}</strong></p>
@@ -435,6 +439,40 @@ const app = {
         </div>
       `);
     } catch (e) { alert(e.message); }
+  },
+
+  async openRazorpayCheckout(session, order, title) {
+    if (!window.Razorpay) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Failed to load Razorpay Checkout.'));
+        document.head.appendChild(s);
+      });
+    }
+    const rzp = new window.Razorpay({
+      key: session.keyId,
+      amount: session.amountPaise || Math.round(session.amount * 100),
+      currency: session.currency || 'INR',
+      name: 'Mudgal Biology',
+      description: title,
+      order_id: session.providerReference,
+      prefill: { name: this.user?.fullName || '', contact: this.user?.phone || '', email: this.user?.email || '' },
+      theme: { color: '#14B8A6' },
+      handler: async (resp) => {
+        try {
+          await this.api('/payments/razorpay/verify', {
+            method: 'POST',
+            body: JSON.stringify({ orderId: order.orderId, ...resp })
+          });
+          this.refreshNotifCount();
+          alert('Payment verified! Batch added to My Library.');
+          this.navigate('learning');
+        } catch (err) { alert(err.message); }
+      }
+    });
+    rzp.open();
   },
 
   async completeSandboxPayment(providerReference, orderId, amount, currency) {

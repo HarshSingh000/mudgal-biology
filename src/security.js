@@ -1,14 +1,63 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 
+const DEV_SECRETS = {
+  jwtSecret: 'DEV_ONLY_REPLACE_WITH_MIN_32_CHAR_SECRET_KEY_2026!',
+  webhookSecret: 'DEV_WEBHOOK_SECRET_KEY_2026',
+  mediaSigningSecret: 'DEV_MEDIA_SIGNING_SECRET_2026'
+};
+
 export const SECURITY_CONFIG = {
-  jwtSecret: process.env.JWT_SECRET || 'DEV_ONLY_REPLACE_WITH_MIN_32_CHAR_SECRET_KEY_2026!',
+  jwtSecret: process.env.JWT_SECRET || DEV_SECRETS.jwtSecret,
   jwtIssuer: process.env.JWT_ISSUER || 'ExamPlatform',
   jwtAudience: process.env.JWT_AUDIENCE || 'ExamPlatformClients',
-  webhookSecret: process.env.WEBHOOK_SECRET || 'DEV_WEBHOOK_SECRET_KEY_2026',
-  mediaSigningSecret: process.env.MEDIA_SIGNING_SECRET || 'DEV_MEDIA_SIGNING_SECRET_2026',
+  webhookSecret: process.env.WEBHOOK_SECRET || DEV_SECRETS.webhookSecret,
+  mediaSigningSecret: process.env.MEDIA_SIGNING_SECRET || DEV_SECRETS.mediaSigningSecret,
   isDev: (process.env.NODE_ENV || 'development') !== 'production'
 };
+
+export function assertProductionConfig(env = process.env) {
+  if ((env.NODE_ENV || 'development') !== 'production') return;
+  const errors = [];
+  if (!env.JWT_SECRET || env.JWT_SECRET === DEV_SECRETS.jwtSecret || env.JWT_SECRET.length < 32) {
+    errors.push('JWT_SECRET must be set to a unique value of at least 32 characters in production.');
+  }
+  if (!env.WEBHOOK_SECRET || env.WEBHOOK_SECRET === DEV_SECRETS.webhookSecret || env.WEBHOOK_SECRET.length < 16) {
+    errors.push('WEBHOOK_SECRET must be set to a unique secret in production.');
+  }
+  if (!env.MEDIA_SIGNING_SECRET || env.MEDIA_SIGNING_SECRET === DEV_SECRETS.mediaSigningSecret || env.MEDIA_SIGNING_SECRET.length < 16) {
+    errors.push('MEDIA_SIGNING_SECRET must be set to a unique secret in production.');
+  }
+  if (errors.length > 0) {
+    throw new Error(`Invalid production configuration:\n- ${errors.join('\n- ')}`);
+  }
+}
+
+export function createRateLimiter({ windowMs = 60_000, max = 30, keyFn = (req) => req.ip, message = 'Too many requests. Please try again shortly.' } = {}) {
+  const hits = new Map();
+  const cleanup = setInterval(() => {
+    const cutoff = Date.now() - windowMs;
+    for (const [key, timestamps] of hits.entries()) {
+      const fresh = timestamps.filter((t) => t > cutoff);
+      if (fresh.length === 0) hits.delete(key);
+      else hits.set(key, fresh);
+    }
+  }, Math.max(windowMs, 60_000));
+  cleanup.unref();
+
+  return (req, res, next) => {
+    const key = String(keyFn(req) || 'unknown');
+    const now = Date.now();
+    const cutoff = now - windowMs;
+    const recent = (hits.get(key) || []).filter((t) => t > cutoff);
+    if (recent.length >= max) {
+      return res.status(429).json({ error: 'RATE_LIMITED', message });
+    }
+    recent.push(now);
+    hits.set(key, recent);
+    return next();
+  };
+}
 
 export class AppError extends Error {
   constructor(message, statusCode = 400, errorCode = 'BAD_REQUEST') {
@@ -35,12 +84,16 @@ export function computeHmacSha256(payload, secret) {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex').toLowerCase();
 }
 
-export function verifyWebhookSignature(rawPayload, signatureHeader) {
-  if (!signatureHeader) return false;
-  const expected = computeHmacSha256(rawPayload, SECURITY_CONFIG.webhookSecret);
+export function verifyHmacSignature(rawPayload, signatureHeader, secret) {
+  if (!signatureHeader || !secret) return false;
+  const expected = computeHmacSha256(rawPayload, secret);
   const actual = String(signatureHeader).trim().toLowerCase();
   if (expected.length !== actual.length) return false;
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(actual));
+}
+
+export function verifyWebhookSignature(rawPayload, signatureHeader) {
+  return verifyHmacSignature(rawPayload, signatureHeader, SECURITY_CONFIG.webhookSecret);
 }
 
 export function createSignedMediaUrl(assetId, ttlSeconds = 900) {

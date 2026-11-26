@@ -1,10 +1,79 @@
 import crypto from 'node:crypto';
 import express from 'express';
 import { nowIso, uuid } from '../db.js';
-import { AppError, asyncHandler, issueJwt, normalizePhone, requireAuth, SECURITY_CONFIG, sha256Hex } from '../security.js';
+import { AppError, asyncHandler, createRateLimiter, issueJwt, normalizePhone, requireAuth, SECURITY_CONFIG, sha256Hex } from '../security.js';
+
+async function sendOtpSms(phone, otp) {
+  const provider = (process.env.SMS_PROVIDER || 'none').trim().toLowerCase();
+  const isProd = (process.env.NODE_ENV || 'development') === 'production';
+
+  if (provider === 'none' || !provider) {
+    if (isProd) {
+      throw new AppError('SMS OTP provider is not configured. Set SMS_PROVIDER and provider keys.', 503, 'SMS_NOT_CONFIGURED');
+    }
+    return;
+  }
+
+  if (provider === 'msg91') {
+    const authkey = process.env.MSG91_AUTH_KEY;
+    const templateId = process.env.MSG91_TEMPLATE_ID;
+    if (!authkey || !templateId) throw new AppError('MSG91 credentials missing.', 503, 'SMS_NOT_CONFIGURED');
+    const resp = await fetch(`https://control.msg91.com/api/v5/otp?template_id=${encodeURIComponent(templateId)}&mobile=91${encodeURIComponent(phone)}&otp=${encodeURIComponent(otp)}`, {
+      method: 'POST',
+      headers: { authkey, 'Content-Type': 'application/json' }
+    });
+    if (!resp.ok) throw new AppError('Failed to send OTP via MSG91.', 502, 'SMS_DELIVERY_FAILED');
+    return;
+  }
+
+  if (provider === 'fast2sms') {
+    const apiKey = process.env.FAST2SMS_API_KEY;
+    if (!apiKey) throw new AppError('Fast2SMS API key missing.', 503, 'SMS_NOT_CONFIGURED');
+    const payload = process.env.FAST2SMS_TEMPLATE_ID
+      ? {
+          route: 'dlt',
+          sender_id: process.env.FAST2SMS_SENDER_ID || 'MUDGAL',
+          message: process.env.FAST2SMS_TEMPLATE_ID,
+          variables_values: otp,
+          numbers: phone
+        }
+      : { route: 'otp', variables_values: otp, numbers: phone };
+    const resp = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+      method: 'POST',
+      headers: { authorization: apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new AppError('Failed to send OTP via Fast2SMS.', 502, 'SMS_DELIVERY_FAILED');
+    return;
+  }
+
+  if (provider === 'twilio') {
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+    const from = process.env.TWILIO_FROM_NUMBER;
+    if (!sid || !token || !from) throw new AppError('Twilio credentials missing.', 503, 'SMS_NOT_CONFIGURED');
+    const auth = Buffer.from(`${sid}:${token}`).toString('base64');
+    const body = new URLSearchParams({
+      To: `+91${phone}`,
+      From: from,
+      Body: `Your Mudgal Biology verification OTP is ${otp}. Valid for 5 minutes.`
+    });
+    const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    if (!resp.ok) throw new AppError('Failed to send OTP via Twilio.', 502, 'SMS_DELIVERY_FAILED');
+    return;
+  }
+
+  throw new AppError(`Unsupported SMS_PROVIDER: ${provider}`, 500, 'SMS_CONFIG_ERROR');
+}
 
 export function createAuthRouter(db) {
   const router = express.Router();
+  const otpIpLimiter = createRateLimiter({ windowMs: 10 * 60_000, max: 30, message: 'Too many OTP requests from this IP. Try again later.' });
+  const verifyIpLimiter = createRateLimiter({ windowMs: 10 * 60_000, max: 50, message: 'Too many verification attempts. Try again later.' });
 
   const getProfile = (userId) => {
     const u = db.prepare(`
@@ -44,21 +113,33 @@ export function createAuthRouter(db) {
     return { accessToken, refreshToken: rawRefresh, expiresAt, user: getProfile(userId) };
   };
 
-  router.post('/auth/otp/request', asyncHandler((req, res) => {
+  router.post('/auth/otp/request', otpIpLimiter, asyncHandler(async (req, res) => {
     const phone = normalizePhone(req.body?.phone);
     if (phone.length < 10) throw new AppError('Please enter a valid 10-digit mobile number.', 400, 'INVALID_PHONE');
+
+    const cooldownSec = Number(process.env.OTP_COOLDOWN_SECONDS ?? ((process.env.NODE_ENV || 'development') === 'production' ? 30 : 0));
+    if (cooldownSec > 0) {
+      const latest = db.prepare('SELECT CreatedAt FROM OtpChallenges WHERE Phone = ? ORDER BY CreatedAt DESC LIMIT 1').get(phone);
+      if (latest && (Date.now() - Date.parse(latest.CreatedAt)) < cooldownSec * 1000) {
+        throw new AppError(`Please wait ${cooldownSec} seconds before requesting another OTP.`, 429, 'OTP_COOLDOWN');
+      }
+    }
+
     const otp = String(crypto.randomInt(100000, 999999));
     const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString();
     db.prepare('INSERT INTO OtpChallenges (ChallengeId, Phone, CodeHash, ExpiresAt, Attempts, Consumed, CreatedAt) VALUES (?, ?, ?, ?, 0, 0, ?)')
       .run(uuid(), phone, sha256Hex(otp), expiresAt, nowIso());
+
+    await sendOtpSms(phone, otp);
+    const showHint = (process.env.NODE_ENV || 'development') !== 'production';
     res.json({
       message: 'OTP sent successfully.',
-      devOtpHint: SECURITY_CONFIG.isDev ? otp : null,
+      devOtpHint: showHint ? otp : null,
       expiresInSeconds: 300
     });
   }));
 
-  router.post('/auth/otp/verify', asyncHandler((req, res) => {
+  router.post('/auth/otp/verify', verifyIpLimiter, asyncHandler((req, res) => {
     const phone = normalizePhone(req.body?.phone);
     const otp = String(req.body?.otp || '').trim();
     const challenge = db.prepare('SELECT * FROM OtpChallenges WHERE Phone = ? AND Consumed = 0 ORDER BY CreatedAt DESC LIMIT 1').get(phone);
