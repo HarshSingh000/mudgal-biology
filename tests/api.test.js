@@ -239,4 +239,27 @@ test('Dashboard student details, verification, and SuperAdmin-only faculty creat
   const facAuth = await facLogin.json();
   assert.ok(facAuth.user.roles.includes('Faculty'));
   assert.equal((await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: { Authorization: `Bearer ${facAuth.accessToken}` } })).status, 200);
+
+  // SuperAdmin can UPDATE and DELETE faculty; regular Admin is forbidden (403)
+  const facId = (await addFac.json()).userId;
+  assert.equal((await fetch(`${baseUrl}/api/v1/admin/faculties/${facId}`, {
+    method: 'PUT', headers: admHeaders, body: JSON.stringify({ fullName: 'Blocked Edit' })
+  })).status, 403);
+
+  const updFac = await fetch(`${baseUrl}/api/v1/admin/faculties/${facId}`, {
+    method: 'PUT',
+    headers: superHeaders,
+    body: JSON.stringify({ fullName: 'Dr. Meera Updated', password: 'NewFacPass@99' })
+  });
+  assert.equal(updFac.status, 200);
+  assert.equal((await updFac.json()).fullName, 'Dr. Meera Updated');
+
+  const delFac = await fetch(`${baseUrl}/api/v1/admin/faculties/${facId}`, {
+    method: 'DELETE', headers: superHeaders
+  });
+  assert.equal(delFac.status, 204);
+  const deletedLogin = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: '9777776666', password: 'NewFacPass@99' })
+  });
+  assert.equal(deletedLogin.status, 401);
 });

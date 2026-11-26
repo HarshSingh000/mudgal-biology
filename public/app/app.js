@@ -111,10 +111,13 @@ const app = {
     }
 
     const isAuthed = Boolean(this.token && this.user);
-    const logoutTopBtn = document.getElementById('logoutTopBtn');
-    const logoutSideBtn = document.getElementById('logoutSideBtn');
-    if (logoutTopBtn) logoutTopBtn.style.display = isAuthed ? 'inline-flex' : 'none';
-    if (logoutSideBtn) logoutSideBtn.style.display = isAuthed ? 'block' : 'none';
+    const setDisp = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
+    setDisp('sidebarNav', isAuthed ? 'flex' : 'none');
+    setDisp('bottomNav', isAuthed ? '' : 'none');
+    setDisp('flashcardsTopBtn', isAuthed ? 'inline-flex' : 'none');
+    setDisp('notifTopBtn', isAuthed ? 'inline-grid' : 'none');
+    setDisp('logoutTopBtn', isAuthed ? 'inline-flex' : 'none');
+    if (!isAuthed) goalPill.style.display = 'none';
 
     const view = document.getElementById('mainView');
     if (!this.token || !this.user) return this.renderAuth(view);
@@ -182,10 +185,6 @@ const app = {
         </div>
 
         <p id="authErr" style="color:var(--danger);font-size:.88rem;margin-top:10px;"></p>
-        <div class="muted" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:.8rem;">
-          By continuing, you consent to our <a href="/terms" target="_blank">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.
-          <div style="margin-top:6px;"><a href="/mentorship">Mentorship (GEMS &amp; STF)</a> &bull; <a href="/about">About Mudgal Biology</a> &bull; <a href="/contact">Support</a> &bull; <a href="/admin">Staff Admin Login</a></div>
-        </div>
       </div>
     `;
   },
@@ -1054,16 +1053,11 @@ const app = {
         <button class="btn btn-navy btn-sm" style="margin-top:10px;" onclick="app.updatePassword()">Update Password</button>
       </div>
       <div class="card">
-        <h3>Policies, Portals &amp; Account</h3>
-        <div class="row" style="margin-bottom:12px;">
-          <a class="btn btn-outline btn-sm" href="/about" target="_blank">About Us</a>
-          <a class="btn btn-outline btn-sm" href="/privacy" target="_blank">Privacy Policy</a>
-          <a class="btn btn-outline btn-sm" href="/terms" target="_blank">Terms</a>
-          <a class="btn btn-outline btn-sm" href="/refund" target="_blank">Refund Policy</a>
-          <a class="btn btn-outline btn-sm" href="/contact" target="_blank">Contact</a>
-          <a class="btn btn-navy btn-sm" href="/admin" target="_blank">Admin Portal</a>
+        <h3>Account Controls</h3>
+        <div class="row">
+          <button class="btn btn-navy btn-sm" onclick="app.logout()">🚪 Sign Out</button>
+          <button class="btn btn-danger btn-sm" onclick="app.requestDeletion()">Request Account Deletion</button>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="app.requestDeletion()">Request Account Deletion</button>
       </div>
     `;
   },
@@ -1109,7 +1103,10 @@ const app = {
     try { await this.api('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken: this.refreshToken }) }); } catch {}
     const badge = document.getElementById('notifCount');
     if (badge) badge.style.display = 'none';
-    this.clearAuth(); this.render();
+    this.tab = 'home';
+    this.activeAttempt = null;
+    this.clearAuth();
+    this.render();
   },
 
   showModal(html) {

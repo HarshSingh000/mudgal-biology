@@ -477,17 +477,18 @@ const admin = {
     } catch (e) { errMsg = e.message; }
     document.getElementById('admMain').innerHTML = `
       <div class="page-head">
-        <div><h1>Faculty &amp; Staff Management</h1><span style="color:var(--slate);font-size:.9rem;">Only <strong>SuperAdmin</strong> can add or suspend Faculty, Support, and Admin accounts.</span></div>
+        <div><h1>Faculty &amp; Staff Management (CRUD)</h1><span style="color:var(--slate);font-size:.9rem;">Only <strong>SuperAdmin</strong> can Create, Update, Suspend, or Delete Faculty, Support, and Admin accounts.</span></div>
         <button class="btn btn-danger" onclick="admin.logout()">🚪 Logout</button>
       </div>
       ${isSuper ? `
         <div class="card">
-          <h3 style="margin-top:0;">➕ Add New Faculty / Staff (SuperAdmin)</h3>
+          <h3 id="fFormTitle" style="margin-top:0;">➕ Add New Faculty / Staff (SuperAdmin)</h3>
+          <input id="fEditId" type="hidden" value="" />
           <div class="grid-2">
             <div><label>Full Name</label><input id="fName" placeholder="e.g. Dr. Anjali Verma" /></div>
             <div><label>10-digit Mobile Number</label><input id="fPhone" placeholder="e.g. 9822334455" /></div>
             <div><label>Email (optional)</label><input id="fEmail" placeholder="faculty@mudgalbiology.in" /></div>
-            <div><label>Password (min 6 chars)</label><input id="fPwd" type="password" placeholder="Set login password" /></div>
+            <div><label id="fPwdLabel">Password (min 6 chars)</label><input id="fPwd" type="password" placeholder="Set login password" /></div>
           </div>
           <label>Role</label>
           <select id="fRole" style="max-width:260px;">
@@ -495,16 +496,19 @@ const admin = {
             <option value="SupportAgent">SupportAgent</option>
             <option value="Admin">Admin</option>
           </select>
-          <button class="btn btn-primary" onclick="admin.addFaculty()">Add Faculty Account</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="fSaveBtn" class="btn btn-primary" onclick="admin.saveFaculty()">Add Faculty Account</button>
+            <button id="fCancelBtn" class="btn" style="display:none;background:#E2E8F0;color:#0F172A;" onclick="admin.resetFacultyForm()">Cancel Edit</button>
+          </div>
           <p id="fErr" style="color:var(--danger);font-weight:600;margin-top:8px;"></p>
         </div>
-      ` : `<div class="card" style="border-left:4px solid var(--amber);"><strong>Permission Notice:</strong> You are signed in as <strong>${this.user.roles.join(', ')}</strong>. Sign in as <strong>SuperAdmin</strong> (<code>8888888888</code>) to add or manage Faculty accounts.</div>`}
+      ` : `<div class="card" style="border-left:4px solid var(--amber);"><strong>Permission Notice:</strong> You are signed in as <strong>${this.user.roles.join(', ')}</strong>. Sign in as <strong>SuperAdmin</strong> (<code>8888888888</code>) to create, edit, or delete Faculty accounts.</div>`}
       <div class="card">
         <h3 style="margin-top:0;">Current Staff &amp; Faculties (${staff.length})</h3>
         ${errMsg ? `<p style="color:var(--danger);">${errMsg}</p>` : `
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+              <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Status</th><th>Actions (CRUD)</th></tr></thead>
               <tbody>
                 ${staff.map((s) => `
                   <tr>
@@ -513,7 +517,11 @@ const admin = {
                     <td>${s.email}</td>
                     <td><span class="badge">${s.role}</span></td>
                     <td>${s.status}</td>
-                    <td>${isSuper && s.userId !== this.user.userId ? (s.status === 'Suspended' ? `<button class="btn btn-primary btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Active')">Activate</button>` : `<button class="btn btn-danger btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Suspended')">Suspend</button>`) : '-'}</td>
+                    <td style="display:flex;gap:6px;flex-wrap:wrap;">${isSuper && s.userId !== this.user.userId ? `
+                      <button class="btn btn-navy btn-sm" onclick="admin.editFaculty('${s.userId}')">✏️ Edit</button>
+                      ${s.status === 'Suspended' ? `<button class="btn btn-primary btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Active')">Activate</button>` : `<button class="btn btn-amber btn-sm" onclick="admin.toggleStaffStatus('${s.userId}','Suspended')">Suspend</button>`}
+                      ${s.role !== 'SuperAdmin' ? `<button class="btn btn-danger btn-sm" onclick="admin.deleteFaculty('${s.userId}','${s.fullName.replace(/'/g, '')}')">🗑️ Delete</button>` : ''}
+                    ` : '-'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -522,24 +530,65 @@ const admin = {
         `}
       </div>
     `;
+    this._staffList = staff;
   },
 
-  async addFaculty() {
+  editFaculty(userId) {
+    const s = (this._staffList || []).find((x) => x.userId === userId);
+    if (!s) return;
+    document.getElementById('fEditId').value = s.userId;
+    document.getElementById('fFormTitle').textContent = `✏️ Edit Faculty / Staff: ${s.fullName}`;
+    document.getElementById('fName').value = s.fullName;
+    document.getElementById('fPhone').value = s.phone;
+    document.getElementById('fEmail').value = s.email === '-' ? '' : s.email;
+    document.getElementById('fPwd').value = '';
+    document.getElementById('fPwdLabel').textContent = 'New Password (leave blank to keep existing)';
+    document.getElementById('fRole').value = ['Faculty', 'SupportAgent', 'Admin'].includes(s.role) ? s.role : 'Faculty';
+    document.getElementById('fSaveBtn').textContent = 'Save Changes';
+    document.getElementById('fCancelBtn').style.display = 'inline-flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  resetFacultyForm() {
+    document.getElementById('fEditId').value = '';
+    document.getElementById('fFormTitle').textContent = '➕ Add New Faculty / Staff (SuperAdmin)';
+    document.getElementById('fName').value = '';
+    document.getElementById('fPhone').value = '';
+    document.getElementById('fEmail').value = '';
+    document.getElementById('fPwd').value = '';
+    document.getElementById('fPwdLabel').textContent = 'Password (min 6 chars)';
+    document.getElementById('fRole').value = 'Faculty';
+    document.getElementById('fSaveBtn').textContent = 'Add Faculty Account';
+    document.getElementById('fCancelBtn').style.display = 'none';
+    document.getElementById('fErr').textContent = '';
+  },
+
+  async saveFaculty() {
     try {
       document.getElementById('fErr').textContent = '';
-      await this.api('/admin/faculties', {
-        method: 'POST',
-        body: JSON.stringify({
-          fullName: document.getElementById('fName').value,
-          phone: document.getElementById('fPhone').value,
-          email: document.getElementById('fEmail').value,
-          password: document.getElementById('fPwd').value,
-          role: document.getElementById('fRole').value
-        })
-      });
-      alert('Faculty account added successfully!');
+      const editId = document.getElementById('fEditId').value;
+      const body = {
+        fullName: document.getElementById('fName').value,
+        phone: document.getElementById('fPhone').value,
+        email: document.getElementById('fEmail').value,
+        password: document.getElementById('fPwd').value,
+        role: document.getElementById('fRole').value
+      };
+      if (editId) {
+        await this.api(`/admin/faculties/${editId}`, { method: 'PUT', body: JSON.stringify(body) });
+        alert('Faculty account updated!');
+      } else {
+        await this.api('/admin/faculties', { method: 'POST', body: JSON.stringify(body) });
+        alert('Faculty account added successfully!');
+      }
       this.loadStaff();
     } catch (e) { document.getElementById('fErr').textContent = e.message; }
+  },
+
+  async deleteFaculty(userId, name) {
+    if (!confirm(`Delete faculty/staff account "${name}"? This cannot be undone.`)) return;
+    await this.api(`/admin/faculties/${userId}`, { method: 'DELETE' });
+    this.loadStaff();
   },
 
   async toggleStaffStatus(userId, status) {

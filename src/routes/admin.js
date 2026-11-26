@@ -276,6 +276,60 @@ export function createAdminRouter(db) {
     res.json({ userId: u.UserId, status: nextStatus });
   }));
 
+  router.put('/faculties/:id', requireRoles('SuperAdmin'), asyncHandler((req, res) => {
+    const u = db.prepare('SELECT * FROM Users WHERE UserId = ?').get(req.params.id);
+    if (!u) throw new AppError('Staff member not found.', 404, 'NOT_FOUND');
+    const { fullName, phone: rawPhone, email, password, role, status } = req.body || {};
+
+    const nextName = fullName !== undefined ? String(fullName).trim() : u.FullName;
+    if (!nextName) throw new AppError('Full name cannot be empty.', 400, 'INVALID_NAME');
+
+    let nextPhone = u.Phone;
+    if (rawPhone !== undefined && String(rawPhone).trim()) {
+      nextPhone = normalizePhone(rawPhone);
+      if (!/^[6-9]\d{9}$/.test(nextPhone)) throw new AppError('Enter a valid 10-digit Indian mobile number.', 400, 'INVALID_PHONE');
+      const dup = db.prepare('SELECT UserId FROM Users WHERE Phone = ? AND UserId != ?').get(nextPhone, u.UserId);
+      if (dup) throw new AppError('Another account already uses this mobile number.', 409, 'ACCOUNT_EXISTS');
+    }
+
+    const nextEmail = email !== undefined ? (email ? String(email).trim() : null) : u.Email;
+    const nextStatus = status === 'Suspended' ? 'Suspended' : (status === 'Active' ? 'Active' : u.Status);
+    const nextHash = password && String(password).trim() ? hashPassword(password) : u.PasswordHash;
+
+    db.prepare('UPDATE Users SET FullName = ?, Phone = ?, Email = ?, Status = ?, PasswordHash = ? WHERE UserId = ?')
+      .run(nextName, nextPhone, nextEmail, nextStatus, nextHash, u.UserId);
+
+    const allowedStaffRoles = ['Faculty', 'SupportAgent', 'Admin'];
+    let updatedRole = db.prepare('SELECT r.Name FROM UserRoles ur JOIN Roles r ON ur.RoleId = r.RoleId WHERE ur.UserId = ?').get(u.UserId)?.Name || 'Faculty';
+    if (role && allowedStaffRoles.includes(role) && u.UserId !== req.user.userId) {
+      const roleRow = db.prepare('SELECT RoleId FROM Roles WHERE Name = ?').get(role);
+      if (roleRow) {
+        db.prepare("DELETE FROM UserRoles WHERE UserId = ? AND RoleId IN (SELECT RoleId FROM Roles WHERE Name IN ('Faculty', 'SupportAgent', 'Admin'))").run(u.UserId);
+        db.prepare('INSERT OR IGNORE INTO UserRoles (UserId, RoleId) VALUES (?, ?)').run(u.UserId, roleRow.RoleId);
+        updatedRole = role;
+      }
+    }
+
+    recordAudit(db, req.user.userId, req.user.name, 'UPDATE_STAFF', 'User', u.UserId, `${nextName} (${nextPhone})`);
+    res.json({ userId: u.UserId, fullName: nextName, phone: nextPhone, email: nextEmail || '-', role: updatedRole, status: nextStatus });
+  }));
+
+  router.delete('/faculties/:id', requireRoles('SuperAdmin'), asyncHandler((req, res) => {
+    const u = db.prepare('SELECT * FROM Users WHERE UserId = ?').get(req.params.id);
+    if (!u) throw new AppError('Staff member not found.', 404, 'NOT_FOUND');
+    if (u.UserId === req.user.userId) throw new AppError('Cannot delete your own account.', 400, 'INVALID_ACTION');
+    const roles = db.prepare('SELECT r.Name FROM UserRoles ur JOIN Roles r ON ur.RoleId = r.RoleId WHERE ur.UserId = ?').all(u.UserId).map((r) => r.Name);
+    if (roles.includes('SuperAdmin')) throw new AppError('Cannot delete a SuperAdmin account.', 403, 'FORBIDDEN');
+
+    db.prepare('DELETE FROM CourseFaculties WHERE FacultyUserId = ?').run(u.UserId);
+    db.prepare('UPDATE Doubts SET AssignedTo = NULL WHERE AssignedTo = ?').run(u.UserId);
+    db.prepare('DELETE FROM RefreshTokens WHERE UserId = ?').run(u.UserId);
+    db.prepare('DELETE FROM UserRoles WHERE UserId = ?').run(u.UserId);
+    db.prepare('DELETE FROM Users WHERE UserId = ?').run(u.UserId);
+    recordAudit(db, req.user.userId, req.user.name, 'DELETE_STAFF', 'User', u.UserId, `${u.FullName} (${u.Phone})`);
+    res.status(204).end();
+  }));
+
   router.get('/doubts', asyncHandler((_req, res) => {
     const rows = db.prepare(`SELECT d.*, c.Title AS CourseTitle, u.FullName AS StudentName FROM Doubts d JOIN Courses c ON d.CourseId = c.CourseId JOIN Users u ON d.UserId = u.UserId ORDER BY d.CreatedAt DESC LIMIT 50`).all();
     res.json(rows.map((d) => ({
