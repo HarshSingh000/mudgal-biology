@@ -178,7 +178,13 @@ export function createLearningRouter(db) {
     if (!verifyMediaSignature(`${assetId}:${exp}`, exp, sig)) {
       return res.status(401).json({ error: 'EXPIRED_OR_INVALID_MEDIA_SIGNATURE' });
     }
-    const safeId = String(assetId).replace(/[<>&"']/g, '');
+    const safeId = String(assetId).replace(/[^a-zA-Z0-9_-]/g, '');
+    const isYoutubeId = /^[a-zA-Z0-9_-]{11}$/.test(safeId);
+    if (isYoutubeId) {
+      return res.type('html').send(`<!doctype html><html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;">
+        <iframe src="https://www.youtube-nocookie.com/embed/${safeId}?rel=0" title="Mudgal Biology Lecture" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;"></iframe>
+      </body></html>`);
+    }
     res.type('html').send(`<!doctype html><html><body style="margin:0;background:#0f172a;color:#f8fafc;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;">
       <div style="padding:8px 16px;border-radius:999px;background:#14b8a6;color:#0f172a;font-weight:700;font-size:12px;">SIGNED STREAM ACTIVE</div>
       <h2 style="margin:0;">Mudgal Biology Stream: ${safeId}</h2>
@@ -193,7 +199,7 @@ export function createLearningRouter(db) {
       return res.status(401).json({ error: 'EXPIRED_OR_INVALID_RESOURCE_SIGNATURE' });
     }
     res.setHeader('Content-Disposition', `inline; filename="${key.replace(/[^a-zA-Z0-9._-]/g, '_')}"`);
-    res.type('text/plain').send(`Mudgal Biology — Smart Study Material & Revision Notes\nResource Key: ${key}\nGenerated UTC: ${nowIso()}\n-----------------------------------------------------\n1. Cell Biology: Mitochondria (double-membrane, 70S ribosomes, semi-autonomous).\n2. Human Physiology: SA node is the natural pacemaker of the human heart.\n3. Ratio & Proportion: If a:b = c:d, then ad = bc.\n4. Polity: 42nd Amendment (1976) added Socialist, Secular, Integrity.`);
+    res.type('text/plain').send(`Mudgal Biology (@MUDGALBIOLOGY) — Smart Study Material & Revision Notes\nBy Hemant Mudgal (Senior Teacher)\nResource Key: ${key}\nGenerated UTC: ${nowIso()}\n-----------------------------------------------------\n1. Krebs Cycle (RPSC 2018 PYQ): Succinate -> Fumarate forms FADH2 (NO NADH formed).\n2. DNA Polymerase (RPSC PYQ): DNA Pol I removes RNA primers (5'->3' exonuclease); DNA Pol III does main synthesis.\n3. Circulation: Annelids (Earthworm) = Closed circulation; Arthropods = Open circulation.\n4. Heart Chambers: Fishes = 2-chambered; Amphibians & Reptiles = 3-chambered; Birds & Mammals = 4-chambered.\n5. Dihybrid Cross: F2 phenotypic ratio = 9:3:3:1 (Law of Independent Assortment).`);
   });
 
   return router;

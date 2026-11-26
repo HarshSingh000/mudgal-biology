@@ -57,10 +57,10 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
   // Student blocked from admin
   assert.equal((await fetch(`${baseUrl}/api/v1/admin/dashboard`, { headers: authHeaders })).status, 403);
 
-  // Find UPSC course (initially locked)
-  const courses = await (await fetch(`${baseUrl}/api/v1/courses?search=UPSC`)).json();
-  const upsc = courses.items.find((c) => c.title.includes('UPSC'));
-  const cur = await (await fetch(`${baseUrl}/api/v1/courses/${upsc.courseId}/curriculum`, { headers: authHeaders })).json();
+  // Find URATPG Biology course (initially locked)
+  const courses = await (await fetch(`${baseUrl}/api/v1/courses?search=URATPG`)).json();
+  const uratpg = courses.items.find((c) => c.title.includes('URATPG'));
+  const cur = await (await fetch(`${baseUrl}/api/v1/courses/${uratpg.courseId}/curriculum`, { headers: authHeaders })).json();
   const lessons = cur.modules.flatMap((m) => m.chapters).flatMap((ch) => ch.lessons);
   const preview = lessons.find((l) => l.isPreview);
   const paid = lessons.find((l) => !l.isPreview);
@@ -70,8 +70,8 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
 
   // Idempotent order + checkout + HMAC webhook
   const idem = `node_idem_${Date.now()}`;
-  const o1 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: upsc.courseId, idempotencyKey: idem }) })).json();
-  const o2 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: upsc.courseId, idempotencyKey: idem }) })).json();
+  const o1 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: uratpg.courseId, idempotencyKey: idem }) })).json();
+  const o2 = await (await fetch(`${baseUrl}/api/v1/orders`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ productType: 'Course', productId: uratpg.courseId, idempotencyKey: idem }) })).json();
   assert.equal(o1.orderId, o2.orderId);
 
   const sess = await (await fetch(`${baseUrl}/api/v1/payments/checkout-session`, { method: 'POST', headers: authHeaders, body: JSON.stringify({ orderId: o1.orderId }) })).json();
@@ -91,20 +91,20 @@ test('End-to-end purchase webhook idempotency, entitlement gating, mock test neg
     assert.equal(r.status, 200);
   }
   const ents = await (await fetch(`${baseUrl}/api/v1/me/entitlements`, { headers: authHeaders })).json();
-  assert.equal(ents.filter((e) => e.courseId === upsc.courseId).length, 1);
+  assert.equal(ents.filter((e) => e.courseId === uratpg.courseId).length, 1);
   assert.equal((await fetch(`${baseUrl}/api/v1/lessons/${paid.lessonId}/playback`, { headers: authHeaders })).status, 200);
 
   // Mock test scoring (+2.0 - 0.5 = 1.5)
   const tests = await (await fetch(`${baseUrl}/api/v1/tests`, { headers: authHeaders })).json();
-  const sscTest = tests.find((t) => t.title.includes('SSC CGL'));
-  const att = await (await fetch(`${baseUrl}/api/v1/tests/${sscTest.testId}/attempts`, { method: 'POST', headers: authHeaders })).json();
+  const rpscTest = tests.find((t) => t.title.includes('RPSC 2nd Grade'));
+  const att = await (await fetch(`${baseUrl}/api/v1/tests/${rpscTest.testId}/attempts`, { method: 'POST', headers: authHeaders })).json();
   await fetch(`${baseUrl}/api/v1/attempts/${att.attemptId}/answers/${att.questions[0].questionId}`, {
     method: 'PUT', headers: authHeaders, body: JSON.stringify({ selectedOptionId: att.questions[0].options[0].optionId, isMarkedForReview: false })
   });
   await fetch(`${baseUrl}/api/v1/attempts/${att.attemptId}/answers/${att.questions[1].questionId}`, {
-    method: 'PUT', headers: authHeaders, body: JSON.stringify({ selectedOptionId: att.questions[1].options[0].optionId, isMarkedForReview: true })
+    method: 'PUT', headers: authHeaders, body: JSON.stringify({ selectedOptionId: att.questions[1].options[1].optionId, isMarkedForReview: true })
   });
-  const rec = await (await fetch(`${baseUrl}/api/v1/tests/${sscTest.testId}/attempts`, { method: 'POST', headers: authHeaders })).json();
+  const rec = await (await fetch(`${baseUrl}/api/v1/tests/${rpscTest.testId}/attempts`, { method: 'POST', headers: authHeaders })).json();
   assert.equal(rec.recovered, true);
 
   const sub = await (await fetch(`${baseUrl}/api/v1/attempts/${att.attemptId}/submit`, { method: 'POST', headers: authHeaders })).json();

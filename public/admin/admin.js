@@ -265,7 +265,7 @@ const admin = {
           <h3 style="margin-top:0;">Schedule Live Class</h3>
           <label>Course</label><select id="sCourse">${courses.map((c)=>`<option value="${c.courseId}">${c.title}</option>`).join('')}</select>
           <label>Session Title</label><input id="sTitle" placeholder="Session Title" />
-          <label>Faculty</label><input id="sFac" value="Dr. Mudgal (Biology Lead)" />
+          <label>Faculty</label><input id="sFac" value="Hemant Mudgal (Senior Teacher)" />
           <label>Join URL</label><input id="sUrl" value="https://zoom.us/j/9988776655" />
           <button class="btn btn-navy" onclick="admin.scheduleLive()">Schedule Live Class</button>
         </div>

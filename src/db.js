@@ -392,8 +392,8 @@ function seedIfEmpty(db) {
   // Users
   const users = [
     { id: uuid(), phone: '9876543210', email: 'aarav@example.in', name: 'Aarav Sharma', role: 'Student' },
-    { id: uuid(), phone: '9811112222', email: 'mudgal@mudgalbiology.in', name: 'Dr. Mudgal (Biology Lead)', role: 'Faculty' },
-    { id: uuid(), phone: '9811113333', email: 'rajesh@mudgalbiology.in', name: 'Prof. Rajesh Verma', role: 'Faculty' },
+    { id: uuid(), phone: '9811112222', email: 'mudgalbiolgy@gmail.com', name: 'Hemant Mudgal (Senior Teacher)', role: 'Faculty' },
+    { id: uuid(), phone: '9811113333', email: 'zoology@mudgalbiology.in', name: 'Dr. Kavita Sharma (Zoology)', role: 'Faculty' },
     { id: uuid(), phone: '9811114444', email: 'priya@mudgalbiology.in', name: 'Priya Nair (Support)', role: 'SupportAgent' },
     { id: uuid(), phone: '9999999999', email: 'admin@mudgalbiology.in', name: 'Mudgal Admin', role: 'Admin' },
     { id: uuid(), phone: '8888888888', email: 'super@mudgalbiology.in', name: 'Super Admin', role: 'SuperAdmin' }
@@ -405,71 +405,64 @@ function seedIfEmpty(db) {
   }
   const [student, faculty1, faculty2] = users;
 
-  // Exams
+  // Exams (Aligned with @MUDGALBIOLOGY YouTube Channel)
   const exams = [
-    { id: uuid(), name: 'NEET & Medical Biology', code: 'NEET_BIO', desc: 'NCERT Line-by-Line Botany, Zoology, CUET Biology & Nursing' },
-    { id: uuid(), name: 'SSC CGL & CHSL', code: 'SSC', desc: 'Combined Graduate Level, CHSL & General Science preparation' },
-    { id: uuid(), name: 'UPSC Civil Services', code: 'UPSC', desc: 'UPSC CSE Prelims GS, Science & Tech, CSAT & Mains Foundation' },
-    { id: uuid(), name: 'Banking (IBPS / SBI)', code: 'BANKING', desc: 'IBPS PO, SBI Clerk & RBI Assistant quantitative & reasoning mastery' },
-    { id: uuid(), name: 'State PSC (PCS)', code: 'STATE_PSC', desc: 'State Administrative Services GS, Biology & State GK' }
+    { id: uuid(), name: 'RPSC 2nd Grade Science', code: 'RPSC_2ND', desc: 'Graduation Biology Series, Invertebrates, Chordates, Teaching Methods & GEMS Mentorship' },
+    { id: uuid(), name: 'RPSC 1st Grade Biology', code: 'RPSC_1ST', desc: 'School Lecturer Biology — Genetics, Developmental Biology, Ecology & RPSC PYQs' },
+    { id: uuid(), name: 'URATPG (Biology)', code: 'URATPG_BIO', desc: 'University of Rajasthan M.Sc. Biology Entrance — Botany, Zoology & Life Sciences' },
+    { id: uuid(), name: 'NEET (Bio Focused)', code: 'NEET_BIO', desc: 'NCERT Line-by-Line Botany & Zoology with Short Tricks for 360/360 in NEET Biology' }
   ];
   for (const e of exams) {
     db.prepare('INSERT INTO Exams (ExamId, Name, Code, Description, IsActive) VALUES (?, ?, ?, ?, 1)')
       .run(e.id, e.name, e.code, e.desc);
   }
-  const [neetBio, ssc, upsc, banking, statePsc] = exams;
+  const [rpsc2nd, rpsc1st, uratpg, neetBio] = exams;
 
   db.prepare(`INSERT INTO StudentProfiles (UserId, PreferredLanguage, State, TargetExamId, AcceptedTerms, TermsAcceptedAt) VALUES (?, 'en', 'Rajasthan', ?, 1, ?)`)
-    .run(student.id, neetBio.id, nowIso());
+    .run(student.id, rpsc2nd.id, nowIso());
   db.prepare(`INSERT INTO NotificationPreferences (UserId) VALUES (?)`).run(student.id);
 
   // Subjects
-  const subBotany = uuid(), subZoology = uuid(), subQuant = uuid(), subReason = uuid(), subPolity = uuid();
+  const subGradBio = uuid(), subGenetics = uuid(), subPhysiology = uuid(), subBotany = uuid();
   for (const [sid, eid, name] of [
-    [subBotany, neetBio.id, 'Botany & Plant Physiology'],
-    [subZoology, neetBio.id, 'Human Physiology & Genetics'],
-    [subQuant, ssc.id, 'Quantitative Aptitude'],
-    [subReason, ssc.id, 'General Intelligence & Reasoning'],
-    [subPolity, upsc.id, 'Indian Polity & Governance']
+    [subGradBio, rpsc2nd.id, 'Graduation Biology (Invertebrates & Chordates)'],
+    [subPhysiology, rpsc2nd.id, 'Animal & Plant Physiology'],
+    [subGenetics, rpsc1st.id, 'Genetics & Molecular Biology'],
+    [subBotany, neetBio.id, 'NCERT Botany & Ecology']
   ]) {
     db.prepare('INSERT INTO Subjects (SubjectId, ExamId, Name) VALUES (?, ?, ?)').run(sid, eid, name);
   }
 
   // Courses
-  const neetCourseId = uuid(), sscCourseId = uuid(), upscCourseId = uuid(), bankCourseId = uuid(), pscCourseId = uuid();
+  const rpsc2ndCourseId = uuid(), rpsc1stCourseId = uuid(), uratpgCourseId = uuid(), neetCourseId = uuid();
   const courses = [
     {
-      id: neetCourseId, title: 'Mudgal Biology — NEET UG Complete NCERT Line-by-Line Batch',
-      slug: 'mudgal-biology-neet-ug-2027',
-      desc: 'Master 360/360 in NEET Biology with Dr. Mudgal: NCERT Botany & Zoology, 3D diagram notes, smart e-books, daily flashcards & All-India mock tests.',
-      lang: 'Bilingual (EN/HI)', type: 'Live + Recorded', price: 1999, days: 365, examId: neetBio.id, facId: faculty1.id,
-      faqs: JSON.stringify([{ Question: 'Does this cover Class 11 & 12 NCERT?', Answer: 'Yes, every NCERT line, diagram, and exemplar MCQ is covered in depth.' }])
+      id: rpsc2ndCourseId, title: 'RPSC 2nd Grade Science 2027 — Graduation Biology & GEMS Mentorship',
+      slug: 'rpsc-2nd-grade-science-gems-2027',
+      desc: 'Har topic ko simple banake padhate hain! Complete Graduation Biology (Invertebrates, Vertebrates, Nervous & Circulatory Systems), RPSC PYQ marathons & GEMS Test Series by Hemant Mudgal.',
+      lang: 'Bilingual (HI/EN)', type: 'GEMS Mentorship + Live', price: 1499, days: 365, examId: rpsc2nd.id, facId: faculty1.id,
+      faqs: JSON.stringify([{ Question: 'Does this cover Graduation-level Biology for RPSC 2nd Grade?', Answer: 'Yes, every B.Sc. level topic including Invertebrates, Vertebrates, Locomotion, Circulation, and Nervous System is covered with RPSC PYQs.' }])
     },
     {
-      id: sscCourseId, title: 'SSC CGL Tier I & II Complete Foundation Batch 2027',
-      slug: 'ssc-cgl-complete-foundation-2027',
-      desc: 'Structured daily classes, arithmetic & advance maths, PYQ drills, bilingual PDFs, and full-length Tier-I/II mock tests.',
-      lang: 'Bilingual (EN/HI)', type: 'Foundation', price: 1499, days: 365, examId: ssc.id, facId: faculty2.id,
-      faqs: JSON.stringify([{ Question: 'Is this batch bilingual?', Answer: 'Classes use English slides with Hindi & English explanation.' }])
+      id: rpsc1stCourseId, title: 'RPSC 1st Grade Biology — School Lecturer Complete Batch',
+      slug: 'rpsc-1st-grade-biology-lecturer',
+      desc: 'In-depth Genetics, DNA Polymerase & Molecular Biology, Developmental Biology, Ecology, and previous year paper solutions with short-note PDFs.',
+      lang: 'Bilingual (HI/EN)', type: 'Live + Recorded', price: 2499, days: 365, examId: rpsc1st.id, facId: faculty1.id,
+      faqs: JSON.stringify([{ Question: 'Are RPSC PYQs solved topic-wise?', Answer: 'Yes, every unit includes previous year RPSC Biology questions and detailed solutions.' }])
     },
     {
-      id: upscCourseId, title: 'UPSC CSE Prelims GS + CSAT Integrated Batch',
-      slug: 'upsc-cse-prelims-gs-csat',
-      desc: 'Comprehensive NCERT-to-Standard Polity, Economy, Modern History, Environment & CSAT problem solving.',
-      lang: 'English', type: 'Prelims + CSAT', price: 2999, days: 365, examId: upsc.id, facId: faculty1.id,
-      faqs: JSON.stringify([{ Question: 'Are current affairs notes included?', Answer: 'Yes, monthly curated PDFs are attached to module lessons.' }])
+      id: uratpgCourseId, title: 'URATPG (Biology) M.Sc. Entrance Crash & PYQ Batch',
+      slug: 'uratpg-biology-entrance-batch',
+      desc: 'Focused preparation for University of Rajasthan PG Biology Entrance covering Plant Physiology, Krebs Cycle, Genetics, and high-yield MCQs.',
+      lang: 'Bilingual (HI/EN)', type: 'Target Batch', price: 1199, days: 180, examId: uratpg.id, facId: faculty2.id,
+      faqs: JSON.stringify([{ Question: 'Are bilingual notes included?', Answer: 'Yes, downloadable smart e-books and short tricks are included.' }])
     },
     {
-      id: bankCourseId, title: 'IBPS PO & SBI Clerk Speed Booster Batch',
-      slug: 'ibps-sbi-speed-booster',
-      desc: 'High-speed DI, seating arrangement puzzles, reading comprehension and sectional speed tests.',
-      lang: 'English', type: 'Target Batch', price: 999, days: 180, examId: banking.id, facId: faculty2.id, faqs: '[]'
-    },
-    {
-      id: pscCourseId, title: 'State PSC Integrated Prelims & Mains GS',
-      slug: 'state-psc-integrated-gs',
-      desc: 'Complete coverage of General Studies, Constitution, Geography and State-specific modules.',
-      lang: 'Hindi', type: 'Foundation', price: 1799, days: 365, examId: statePsc.id, facId: faculty1.id, faqs: '[]'
+      id: neetCourseId, title: 'NEET (Bio Focused) — NCERT Line-by-Line 360/360 Batch',
+      slug: 'mudgal-biology-neet-bio-focused',
+      desc: 'Master Class 11 & 12 NCERT Botany & Zoology with Hemant Mudgal: short tricks, diagram revision, active-recall flashcards & negative-marked mock tests.',
+      lang: 'Bilingual (HI/EN)', type: 'Foundation + Test Series', price: 1999, days: 365, examId: neetBio.id, facId: faculty1.id,
+      faqs: JSON.stringify([{ Question: 'Does this cover Class 11 & 12 NCERT?', Answer: 'Yes, every NCERT line, diagram, and high-yield NEET Biology PYQ is covered.' }])
     }
   ];
 
@@ -480,14 +473,14 @@ function seedIfEmpty(db) {
     db.prepare('INSERT INTO CourseFaculties (CourseId, FacultyUserId) VALUES (?, ?)').run(c.id, c.facId);
   }
 
-  // Media + Curriculum Helper
+  // Media + Curriculum Helper (linked to real @MUDGALBIOLOGY YouTube video IDs)
   const addLessonSet = (courseId, modTitle, chTitle, lessons) => {
     const modId = uuid(), chId = uuid();
     db.prepare('INSERT INTO CourseModules (ModuleId, CourseId, Title, SortOrder) VALUES (?, ?, ?, 1)').run(modId, courseId, modTitle);
     db.prepare('INSERT INTO Chapters (ChapterId, ModuleId, Title, SortOrder) VALUES (?, ?, ?, 1)').run(chId, modId, chTitle);
     lessons.forEach((l, idx) => {
       const assetId = uuid(), lessonId = uuid();
-      db.prepare(`INSERT INTO MediaAssets (MediaAssetId, Provider, ProviderAssetId, AssetType, Status) VALUES (?, 'MockHlsCdn', ?, 'Video', 'Ready')`)
+      db.prepare(`INSERT INTO MediaAssets (MediaAssetId, Provider, ProviderAssetId, AssetType, Status) VALUES (?, 'YouTube', ?, 'Video', 'Ready')`)
         .run(assetId, l.assetKey);
       db.prepare(`INSERT INTO Lessons (LessonId, ChapterId, Title, LessonType, MediaAssetId, DurationSeconds, IsPreview, SortOrder) VALUES (?, ?, ?, 'Video', ?, ?, ?, ?)`)
         .run(lessonId, chId, l.title, assetId, l.dur, l.preview ? 1 : 0, idx + 1);
@@ -498,57 +491,57 @@ function seedIfEmpty(db) {
     });
   };
 
-  addLessonSet(neetCourseId, 'Module 1: Cell — The Unit of Life & Biomolecules', 'Chapter 1: Prokaryotic & Eukaryotic Organelles', [
-    { title: 'Cell Theory, Mitochondria & Chloroplast (Free Demo)', assetKey: 'mudgal_cell_biology_01', dur: 1860, preview: true, pdfTitle: 'NCERT Cell Biology Diagram E-Book.pdf', pdfKey: 'mudgal_cell_biology_ebook.pdf', resType: 'EBook' },
-    { title: 'Human Heart Cardiac Cycle & ECG NCERT Deep Dive', assetKey: 'mudgal_cardiac_cycle_02', dur: 2400, preview: false, pdfTitle: 'Human Physiology 100 High-Yield PYQs.pdf', pdfKey: 'mudgal_physiology_pyq.pdf', resType: 'Pdf' }
+  addLessonSet(rpsc2ndCourseId, 'Module 1: Graduation Biology — Circulation & Nervous System', 'Chapter 1: Comparative Anatomy & Physiology', [
+    { title: 'Circulation in Vertebrates Complete Lecture (Free Demo)', assetKey: 'XfB-yCqwxo8', dur: 2460, preview: true, pdfTitle: 'Vertebrate Circulation Short Notes.pdf', pdfKey: 'mudgal_vertebrate_circulation.pdf', resType: 'EBook' },
+    { title: 'Circulation in Invertebrates Complete Lecture', assetKey: 'PcSkgaK6LyQ', dur: 2100, preview: false, pdfTitle: 'Invertebrate Circulation PYQ Notes.pdf', pdfKey: 'mudgal_invertebrate_circulation.pdf', resType: 'Pdf' },
+    { title: 'Nervous System in Vertebrates — Graduation Biology Series', assetKey: '6F3-zdr6-AM', dur: 2340, preview: false },
+    { title: 'Locomotion in Invertebrates (Part 1 & 2)', assetKey: 'LRcwAYxZxTE', dur: 1980, preview: false }
   ]);
-  addLessonSet(sscCourseId, 'Module 1: Arithmetic Foundations', 'Chapter 1: Ratio, Proportion & Percentage', [
-    { title: 'Orientation & Ratio Shortcuts (Free Demo)', assetKey: 'ssc_intro_ratio_v1', dur: 1240, preview: true, pdfTitle: 'Ratio & Proportion Formula Sheet.pdf', pdfKey: 'ssc_ratio_formulas.pdf' },
-    { title: 'Successive Percentage & Election Questions', assetKey: 'ssc_percentage_lec2', dur: 2150, preview: false, pdfTitle: 'Percentage 50 PYQ Practice Set.pdf', pdfKey: 'ssc_percentage_pyq.pdf' }
+  addLessonSet(rpsc1stCourseId, 'Module 1: Molecular Biology & RPSC Strategy', 'Chapter 1: DNA Replication & Enzymes', [
+    { title: 'Types of DNA Polymerase Enzyme — RPSC PYQ Lecture (Free Demo)', assetKey: 'HoMQLU1ucks', dur: 1500, preview: true, pdfTitle: 'DNA Polymerase Comparison Table.pdf', pdfKey: 'mudgal_dna_polymerase.pdf', resType: 'EBook' },
+    { title: 'GEMS Mentorship & Complete RPSC Biology Roadmap', assetKey: '7t_IjBOSF1w', dur: 1620, preview: false, pdfTitle: 'RPSC Biology Syllabus & PYQ Planner.pdf', pdfKey: 'mudgal_rpsc_planner.pdf' }
   ]);
-  addLessonSet(upscCourseId, 'Module 1: Constitutional Framework', 'Chapter 1: Preamble & Fundamental Rights', [
-    { title: 'Philosophy of the Preamble (Free Demo)', assetKey: 'upsc_polity_preamble', dur: 1800, preview: true, pdfTitle: 'Polity Laxmikanth Summary Notes.pdf', pdfKey: 'upsc_preamble_notes.pdf', resType: 'EBook' },
-    { title: 'Articles 12-35 Deep Dive & Case Laws', assetKey: 'upsc_articles_12_35', dur: 2700, preview: false }
+  addLessonSet(uratpgCourseId, 'Module 1: Bioenergetics & Genetics', 'Chapter 1: Krebs Cycle & Mendelian Crosses', [
+    { title: 'Krebs Cycle NADH Yield & RPSC PYQ Concept (Free Demo)', assetKey: 'a2l5Q3qI6Hw', dur: 960, preview: true, pdfTitle: 'Krebs Cycle & Glycolysis Short Tricks.pdf', pdfKey: 'mudgal_krebs_cycle.pdf', resType: 'EBook' },
+    { title: 'Dihybrid Cross & Genetics High-Yield PYQs', assetKey: 'WjTyNIY11fw', dur: 1440, preview: false }
   ]);
-  addLessonSet(bankCourseId, 'Module 1: Seating & Floor Puzzles', 'Chapter 1: Multi-variable Floor Puzzles', [
-    { title: '8-Floor Variable Puzzle Approach (Demo)', assetKey: 'bank_puzzle_floors', dur: 1500, preview: true }
-  ]);
-  addLessonSet(pscCourseId, 'Module 1: State Governance & History', 'Chapter 1: Administrative Structure', [
-    { title: 'State Secretariat & Governor Powers (Demo)', assetKey: 'psc_state_gov', dur: 1400, preview: true }
+  addLessonSet(neetCourseId, 'Module 1: Neural Control & Exam Strategy', 'Chapter 1: Types of Nerves & Smart Revision', [
+    { title: 'Types of Nerves — Paper Solution & NCERT Tricks (Free Demo)', assetKey: '7dkkv4kWqQU', dur: 1320, preview: true, pdfTitle: 'NCERT Neural Control Mind Map.pdf', pdfKey: 'mudgal_nerves_mindmap.pdf', resType: 'EBook' },
+    { title: 'Nervous System in Invertebrates & Comparative Bio', assetKey: 'Hsoqc1sZ6Bc', dur: 1920, preview: false }
   ]);
 
   // Subscription Plans
-  const allPassId = uuid(), civilPassId = uuid();
-  db.prepare(`INSERT INTO SubscriptionPlans (PlanId, Name, Description, Price, Currency, DurationDays, Status) VALUES (?, ?, ?, 1999, 'INR', 180, 'Active')`)
-    .run(allPassId, 'All-India Govt Exam Pass (6 Months)', 'Unlock SSC CGL Foundation + Banking Speed Booster + all associated mock tests.');
+  const gemsPassId = uuid(), allBioPassId = uuid();
+  db.prepare(`INSERT INTO SubscriptionPlans (PlanId, Name, Description, Price, Currency, DurationDays, Status) VALUES (?, ?, ?, 2999, 'INR', 365, 'Active')`)
+    .run(gemsPassId, 'RPSC GEMS Combo Pass (1st + 2nd Grade Biology)', 'Unlock both RPSC 2nd Grade Science Graduation Biology & RPSC 1st Grade Biology batches + GEMS Test Series.');
   db.prepare(`INSERT INTO SubscriptionPlans (PlanId, Name, Description, Price, Currency, DurationDays, Status) VALUES (?, ?, ?, 3999, 'INR', 365, 'Active')`)
-    .run(civilPassId, 'Civil Services Combo Pass (12 Months)', 'Includes UPSC CSE Prelims + State PSC Integrated GS.');
-  for (const [pid, cid] of [[allPassId, sscCourseId], [allPassId, bankCourseId], [civilPassId, upscCourseId], [civilPassId, pscCourseId]]) {
+    .run(allBioPassId, 'Mudgal Biology All-Exam Pass (12 Months)', 'Full access to RPSC 1st & 2nd Grade, URATPG Biology, and NEET Bio Focused batches.');
+  for (const [pid, cid] of [[gemsPassId, rpsc2ndCourseId], [gemsPassId, rpsc1stCourseId], [allBioPassId, rpsc2ndCourseId], [allBioPassId, rpsc1stCourseId], [allBioPassId, uratpgCourseId], [allBioPassId, neetCourseId]]) {
     db.prepare('INSERT INTO SubscriptionPlanCourses (PlanId, CourseId) VALUES (?, ?)').run(pid, cid);
   }
 
-  // Demo student entitlements: NEET Biology + SSC enrolled; UPSC/Banking/StatePSC locked
-  for (const cid of [neetCourseId, sscCourseId]) {
+  // Demo student entitlements: RPSC 2nd Grade + NEET Bio enrolled; RPSC 1st Grade & URATPG locked for purchase testing
+  for (const cid of [rpsc2ndCourseId, neetCourseId]) {
     db.prepare(`INSERT INTO Entitlements (EntitlementId, UserId, CourseId, StartsAt, ExpiresAt, SourceType, SourceId, Status) VALUES (?, ?, ?, ?, ?, 'ManualGrant', ?, 'Active')`)
       .run(uuid(), student.id, cid, isoOffset(-3 * DAY), isoOffset(360 * DAY), uuid());
   }
 
   // Live Sessions
-  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'Zoom', 'MUDGAL-BIO-101', 'https://zoom.us/j/90123456789')`)
-    .run(uuid(), neetCourseId, 'Live Marathon: Human Physiology & Genetics NCERT Line-by-Line', faculty1.name, isoOffset(5 * MIN), isoOffset(95 * MIN));
-  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'Zoom', 'SSC-LIVE-901', 'https://zoom.us/j/90123456789')`)
-    .run(uuid(), sscCourseId, 'Live Marathon: Trigonometry & Geometry PYQs', faculty2.name, isoOffset(30 * MIN), isoOffset(120 * MIN));
-  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'GoogleMeet', 'UPSC-LIVE-402', 'https://meet.google.com/abc-defg-hij')`)
-    .run(uuid(), upscCourseId, 'Union Budget & Economic Survey Key Takeaways', 'Dr. Kavita Rao', isoOffset(24 * 3600_000), isoOffset(26 * 3600_000));
+  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'Zoom', 'GEMS-BIO-101', 'https://zoom.us/j/90123456789')`)
+    .run(uuid(), rpsc2ndCourseId, 'GEMS Live Marathon: Circulation & Nervous System PYQs', faculty1.name, isoOffset(5 * MIN), isoOffset(95 * MIN));
+  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'Zoom', 'NEET-BIO-202', 'https://zoom.us/j/90123456789')`)
+    .run(uuid(), neetCourseId, 'NCERT Line-by-Line Revision: Plant Physiology & Krebs Cycle', faculty1.name, isoOffset(30 * MIN), isoOffset(120 * MIN));
+  db.prepare(`INSERT INTO LiveSessions (SessionId, CourseId, Title, FacultyName, StartsAt, EndsAt, Provider, ProviderSessionId, JoinUrl) VALUES (?, ?, ?, ?, ?, ?, 'GoogleMeet', 'RPSC-1ST-303', 'https://meet.google.com/abc-defg-hij')`)
+    .run(uuid(), rpsc1stCourseId, 'Molecular Biology: DNA Polymerase I, II & III Doubt Session', faculty2.name, isoOffset(24 * 3600_000), isoOffset(26 * 3600_000));
 
-  // Tests & Questions
-  const neetTestId = uuid(), sscTestId = uuid(), upscTestId = uuid();
+  // Tests & Questions (Authentic @MUDGALBIOLOGY PYQs)
+  const rpsc2ndTestId = uuid(), neetTestId = uuid(), rpsc1stTestId = uuid();
   db.prepare(`INSERT INTO Tests (TestId, CourseId, Title, Instructions, DurationSeconds, AllowReviewAfterSubmit, Status) VALUES (?, ?, ?, ?, 900, 1, 'Published')`)
-    .run(neetTestId, neetCourseId, 'Mudgal Biology NEET All-India Mock Test #01', 'NEET Pattern: +4.0 marks for correct answer, -1.0 negative marking for wrong answer.');
+    .run(rpsc2ndTestId, rpsc2ndCourseId, 'RPSC 2nd Grade Science: Graduation Biology Mock Test #01', 'RPSC Pattern: +2.0 marks for each correct answer, -0.50 negative marking for wrong answer.');
   db.prepare(`INSERT INTO Tests (TestId, CourseId, Title, Instructions, DurationSeconds, AllowReviewAfterSubmit, Status) VALUES (?, ?, ?, ?, 900, 1, 'Published')`)
-    .run(sscTestId, sscCourseId, 'SSC CGL Tier-I Mini Mock Test #01', 'Each correct answer awards +2.0 marks. Each wrong answer deducts 0.50 marks.');
+    .run(neetTestId, neetCourseId, 'Mudgal Biology NEET Bio Mock Test #01', 'NEET Pattern: +4.0 marks for correct answer, -1.0 negative marking for wrong answer.');
   db.prepare(`INSERT INTO Tests (TestId, CourseId, Title, Instructions, DurationSeconds, AllowReviewAfterSubmit, Status) VALUES (?, ?, ?, ?, 1200, 1, 'Published')`)
-    .run(upscTestId, upscCourseId, 'UPSC Prelims Polity Sectional Test #01', 'Each correct answer awards +2.0 marks. Negative marking is 0.66 marks per wrong answer.');
+    .run(rpsc1stTestId, rpsc1stCourseId, 'RPSC 1st Grade Biology: Genetics & Molecular PYQ Test #01', 'Each correct answer awards +2.0 marks. Negative marking is 0.66 marks per wrong answer.');
 
   const addQuestion = (testId, subjectId, section, stem, explanation, marks, neg, sortOrder, options) => {
     const qId = uuid();
@@ -562,40 +555,40 @@ function seedIfEmpty(db) {
       .run(testId, qId, marks, neg, sortOrder);
   };
 
-  addQuestion(neetTestId, subBotany, 'Botany', 'Which of the following organelles is NOT part of the endomembrane system in eukaryotic cells?', 'Mitochondria, chloroplasts and peroxisomes are not coordinated with ER/Golgi/lysosomes/vacuoles.', 4, 1, 1, [
-    ['Mitochondria', true], ['Golgi apparatus', false], ['Lysosomes', false], ['Endoplasmic reticulum', false]
+  addQuestion(rpsc2ndTestId, subPhysiology, 'Plant Physiology (RPSC 2018 PYQ)', 'In the Krebs cycle (TCA cycle), at which step is NADH NOT formed?', 'Succinate to Fumarate (catalyzed by succinate dehydrogenase) produces FADH2 instead of NADH.', 2, 0.5, 1, [
+    ['Succinate to Fumarate', true], ['Isocitrate to alpha-Ketoglutarate', false], ['alpha-Ketoglutarate to Succinyl-CoA', false], ['Malate to Oxaloacetate', false]
   ]);
-  addQuestion(neetTestId, subZoology, 'Zoology', 'In a standard ECG, which wave represents the depolarization of the ventricles?', 'The QRS complex represents ventricular depolarization, initiating ventricular contraction.', 4, 1, 2, [
+  addQuestion(rpsc2ndTestId, subGradBio, 'Molecular Biology (RPSC 2026 PYQ)', 'Which prokaryotic DNA polymerase primarily fills gaps after RNA primer removal (5\'→3\' exonuclease)?', 'DNA Polymerase I removes RNA primers using its 5\'→3\' exonuclease activity and fills the DNA gap; DNA Pol III is the main replicative enzyme.', 2, 0.5, 2, [
+    ['DNA Polymerase I', true], ['DNA Polymerase II', false], ['DNA Polymerase III', false], ['RNA Primase', false]
+  ]);
+  addQuestion(rpsc2ndTestId, subGradBio, 'Graduation Biology', 'Which group of vertebrates possesses a 3-chambered heart (two atria, one ventricle) with mixed circulation?', 'Amphibians and most reptiles (except crocodilians) have a 3-chambered heart with incomplete double circulation.', 2, 0.5, 3, [
+    ['Fishes', false], ['Amphibians', true], ['Birds', false], ['Mammals', false]
+  ]);
+  addQuestion(neetTestId, subBotany, 'Botany & Genetics', 'What is the classic Mendelian phenotypic ratio in the F2 generation of a dihybrid cross?', 'Independent assortment of two traits yields a 9 : 3 : 3 : 1 phenotypic ratio in F2.', 4, 1, 1, [
+    ['9 : 3 : 3 : 1', true], ['3 : 1', false], ['1 : 2 : 1', false], ['9 : 7', false]
+  ]);
+  addQuestion(neetTestId, subPhysiology, 'Human Physiology', 'In a standard ECG, which wave represents ventricular depolarization?', 'The QRS complex represents depolarization of the ventricles, initiating ventricular systole.', 4, 1, 2, [
     ['P-wave', false], ['QRS complex', true], ['T-wave', false], ['PR interval', false]
   ]);
-  addQuestion(sscTestId, subQuant, 'Quantitative Aptitude', 'If A : B = 3 : 4 and B : C = 8 : 9, what is A : B : C?', 'Equalize B: A:B = 6:8 and B:C = 8:9, therefore A:B:C = 6:8:9.', 2, 0.5, 1, [
-    ['6 : 8 : 9', true], ['3 : 4 : 9', false], ['6 : 4 : 9', false], ['9 : 8 : 6', false]
-  ]);
-  addQuestion(sscTestId, subQuant, 'Quantitative Aptitude', 'A price is increased by 20% and then decreased by 20%. What is the net percentage change?', 'Using x + y + xy/100 = +20 - 20 - 400/100 = -4%, i.e. 4% decrease.', 2, 0.5, 2, [
-    ['No change', false], ['4% decrease', true], ['4% increase', false], ['2% decrease', false]
-  ]);
-  addQuestion(sscTestId, subReason, 'Reasoning', 'Find the missing number in the series: 2, 6, 12, 20, 30, ?', 'Pattern is n*(n+1): 6x7=42.', 2, 0.5, 3, [
-    ['40', false], ['42', true], ['44', false], ['36', false]
-  ]);
-  addQuestion(upscTestId, subPolity, 'Indian Polity', "Which Constitutional Amendment Act added the words 'Socialist', 'Secular' and 'Integrity' to the Preamble?", 'The 42nd Constitutional Amendment Act, 1976 amended the Preamble.', 2, 0.66, 1, [
-    ['44th Amendment Act, 1978', false], ['42nd Amendment Act, 1976', true], ['24th Amendment Act, 1971', false], ['73rd Amendment Act, 1992', false]
+  addQuestion(rpsc1stTestId, subGenetics, 'Molecular Genetics', 'Which enzyme unwinds the DNA double helix ahead of the replication fork?', 'DNA Helicase breaks hydrogen bonds between complementary bases to separate the two strands.', 2, 0.66, 1, [
+    ['DNA Ligase', false], ['DNA Helicase', true], ['DNA Topoisomerase', false], ['Reverse Transcriptase', false]
   ]);
 
   // Doubts, Community & Notifications
   const doubtId = uuid();
   db.prepare(`INSERT INTO Doubts (DoubtId, UserId, CourseId, Title, Text, Status, AssignedTo, CreatedAt) VALUES (?, ?, ?, ?, ?, 'Answered', ?, ?)`)
-    .run(doubtId, student.id, neetCourseId, 'Difference between QRS complex and T-wave in ECG', 'Dr. Mudgal, does T-wave indicate ventricular repolarization?', faculty1.id, nowIso());
+    .run(doubtId, student.id, rpsc2ndCourseId, 'Difference between Open & Closed Circulation in Invertebrates', 'Sir, does Annelida (Earthworm) have a closed circulatory system while Arthropoda has an open one?', faculty1.id, nowIso());
   db.prepare(`INSERT INTO DoubtReplies (ReplyId, DoubtId, AuthorUserId, Message, CreatedAt) VALUES (?, ?, ?, ?, ?)`)
-    .run(uuid(), doubtId, faculty1.id, 'Yes! P-wave = atrial depolarization, QRS = ventricular depolarization, T-wave = ventricular repolarization.', nowIso());
+    .run(uuid(), doubtId, faculty1.id, 'Bilkul sahi! Annelids (like Earthworm) have closed circulation, whereas Arthropods & most Molluscs have open circulation.', nowIso());
 
   const postId = uuid();
   db.prepare(`INSERT INTO CommunityPosts (PostId, UserId, CourseId, ExamId, Body, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, 'Visible', ?)`)
-    .run(postId, student.id, neetCourseId, neetBio.id, 'Finished Cell Biology NCERT E-Book today! Ready for Mudgal Biology Mock Test #01.', nowIso());
+    .run(postId, student.id, rpsc2ndCourseId, rpsc2nd.id, 'Completed Hemant Sir\'s Circulation in Vertebrates lecture today! Short notes + PYQs made it super easy.', nowIso());
   db.prepare(`INSERT INTO CommunityComments (CommentId, PostId, UserId, Body, Status, CreatedAt) VALUES (?, ?, ?, ?, 'Visible', ?)`)
-    .run(uuid(), postId, faculty1.id, 'Great consistency! Use the Active Recall Flashcards before attempting the mock test.', nowIso());
+    .run(uuid(), postId, faculty1.id, 'Shabash! Revise the Flashcards once and attempt RPSC 2nd Grade Mock Test #01.', nowIso());
 
   db.prepare(`INSERT INTO Notifications (NotificationId, UserId, Title, Body, Type, CreatedAt) VALUES (?, ?, ?, ?, 'LiveClass', ?)`)
-    .run(uuid(), student.id, 'Live Class Starting Soon', "Dr. Mudgal's Human Physiology & Genetics marathon starts shortly.", nowIso());
+    .run(uuid(), student.id, 'GEMS Live Class Starting Soon', "Hemant Mudgal's Circulation & Nervous System PYQ marathon starts shortly.", nowIso());
   db.prepare(`INSERT INTO Notifications (NotificationId, UserId, Title, Body, Type, CreatedAt) VALUES (?, ?, ?, ?, 'SystemAnnouncement', ?)`)
-    .run(uuid(), student.id, 'Welcome to Mudgal Biology', 'Your NEET Biology & SSC batches, Smart E-Books, and Daily Flashcards are ready.', nowIso());
+    .run(uuid(), student.id, 'Welcome to Mudgal Biology (@MUDGALBIOLOGY)', 'Har topic ko simple banake padhate hain! Your RPSC 2nd Grade & NEET Bio batches are ready.', nowIso());
 }

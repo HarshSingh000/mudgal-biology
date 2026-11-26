@@ -323,7 +323,7 @@ const app = {
         <button class="btn btn-amber btn-sm" onclick="app.openPlansModal()">⭐ View Subscription Passes</button>
       </div>
       <div class="row" style="margin-bottom:14px;">
-        <input id="courseSearchBox" placeholder="Search Biology, NEET, SSC, UPSC, Banking..." value="${this.searchQuery}" style="max-width:360px;" />
+        <input id="courseSearchBox" placeholder="Search RPSC 1st/2nd Grade, URATPG, NEET Biology..." value="${this.searchQuery}" style="max-width:360px;" />
         <button class="btn btn-navy btn-sm" onclick="app.searchQuery=document.getElementById('courseSearchBox').value;app.renderExplore(document.getElementById('mainView'))">Search</button>
         ${this.searchQuery ? `<button class="btn btn-outline btn-sm" onclick="app.searchQuery='';app.renderExplore(document.getElementById('mainView'))">Clear</button>` : ''}
       </div>
@@ -342,7 +342,7 @@ const app = {
                 </div>
                 <h3 style="margin:10px 0 6px;">${c.title}</h3>
                 <p class="muted">${c.description}</p>
-                <div class="muted" style="margin-top:8px;">👨‍🏫 ${(c.facultyNames || []).join(', ') || 'Dr. Mudgal & Team'}</div>
+                <div class="muted" style="margin-top:8px;">👨‍🏫 ${(c.facultyNames || []).join(', ') || 'Hemant Mudgal & Team'}</div>
                 <div class="muted">🎬 ${c.lessonCount} Lessons &bull; 📝 ${c.testCount} Tests &bull; ⏳ ${c.validityDays}d</div>
               </div>
               <div class="row" style="justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">

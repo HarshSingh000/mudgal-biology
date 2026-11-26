@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mudgal Biology — NEET Biology &amp; Competitive Exam Prep</title>
+  <title>Mudgal Biology — Learn Biology the Smart Way | RPSC, URATPG &amp; NEET</title>
   <link rel="stylesheet" href="/site.css" />
   <style>
-    .hero { background: radial-gradient(circle at top right, rgba(20,184,166,.22), transparent 45%), linear-gradient(135deg, var(--navy) 0%, #192E52 100%); color: #fff; padding: 60px 24px 68px; }
+    .hero { background: radial-gradient(circle at top right, rgba(20,184,166,.22), transparent 45%), linear-gradient(135deg, var(--navy) 0%, #192E52 100%); color: #fff; padding: 56px 24px 64px; }
     .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 36px; align-items: center; }
     .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(20,184,166,.16); color: #5EEAD4; border: 1px solid rgba(20,184,166,.35); padding: 5px 13px; border-radius: 999px; font-size: .82rem; font-weight: 600; margin-bottom: 14px; }
-    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.14; margin: 0 0 16px; }
-    .hero p { color: #CBD5E1; font-size: 1.05rem; margin: 0 0 24px; max-width: 600px; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.14; margin: 0 0 12px; }
+    .tagline { color: #F4B942; font-weight: 700; font-size: 1.08rem; margin: 0 0 12px; }
+    .hero p.sub { color: #CBD5E1; font-size: 1.02rem; margin: 0 0 22px; max-width: 610px; }
     .portal-box { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 18px; padding: 22px; backdrop-filter: blur(10px); }
     .portal-card { background: rgba(15,23,42,.55); border: 1px solid rgba(255,255,255,.10); border-radius: 14px; padding: 16px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .price { font-size: 1.25rem; font-weight: 800; color: var(--navy); margin-top: 12px; }
+    .yt-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 6px 24px rgba(15,23,42,.04); display: flex; flex-direction: column; }
+    .yt-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; background: #0F172A; }
+    .yt-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: space-between; }
+    .yt-tag { font-size: .74rem; font-weight: 700; color: #B91C1C; background: #FEE2E2; padding: 3px 9px; border-radius: 999px; align-self: flex-start; }
     @media (max-width: 840px) { .hero-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -23,9 +28,9 @@
       <a class="brand" href="/"><div class="brand-icon">MB</div><span>Mudgal Biology</span></a>
       <nav class="nav-links">
         <a href="/" class="nav-link active">Home</a>
+        <a href="/#videos" class="nav-link">YouTube Lectures</a>
         <a href="/#courses" class="nav-link">Batches</a>
-        <a href="/about" class="nav-link">About Us</a>
-        <a href="/privacy" class="nav-link">Privacy Policy</a>
+        <a href="/about" class="nav-link">About Hemant Sir</a>
         <a href="/contact" class="nav-link">Contact</a>
         <a href="/admin" class="btn btn-ghost">Admin Portal</a>
         <a href="/app" class="btn btn-primary">Student App &rarr;</a>
@@ -36,30 +41,37 @@
   <section class="hero">
     <div class="container hero-grid">
       <div>
-        <span class="pill">🧬 NEET Biology &bull; SSC &bull; UPSC &bull; Banking &bull; State PSC</span>
-        <h1>Learn Smarter with Mudgal Biology</h1>
-        <p>Live interactive classes, speed-controlled HD lectures, smart e-books, active-recall flashcards, and All-India mock tests — with secure OTP authentication and role-based access across every surface.</p>
+        <span class="pill">🧬 RPSC 1st &amp; 2nd Grade &bull; URATPG &bull; NEET (Bio Focused)</span>
+        <h1>Learn Biology the Smart Way</h1>
+        <div class="tagline">“Har topic ko simple banake padhate hain”</div>
+        <p class="sub">Guided by <strong>Hemant Mudgal</strong> (RPSC 2nd Grade Science 2022 Qualified &amp; Senior Teacher, Govt. of Rajasthan) — topic-wise Graduation &amp; NCERT Biology lectures, RPSC PYQs, smart short-note e-books, flashcards &amp; GEMS Test Series.</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <a href="/app" class="btn btn-primary">Open Student App &rarr;</a>
-          <a href="/admin" class="btn btn-amber">Open Admin Portal &rarr;</a>
+          <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener" class="btn btn-amber">Watch @MUDGALBIOLOGY on YouTube</a>
+          <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener" class="btn btn-ghost">Join Telegram</a>
         </div>
       </div>
 
       <div class="portal-box">
-        <strong style="font-size:1.05rem;">Platform Portals (Authorized Access)</strong>
+        <strong style="font-size:1.05rem;">Mudgal Biology Learning Portals</strong>
         <div class="portal-card">
           <div>
             <strong>📱 Student Learning App</strong>
-            <div style="font-size:.83rem;color:#CBD5E1;">OTP Login: <code>9876543210</code> &bull; Courses, Mock Tests &amp; E-Books</div>
+            <div style="font-size:.83rem;color:#CBD5E1;">OTP Login &bull; Lectures, Smart Notes, Flashcards &amp; Mock Tests</div>
           </div>
           <a href="/app" class="btn btn-primary">Launch App</a>
         </div>
         <div class="portal-card">
           <div>
             <strong>🛡️ Admin &amp; Faculty Portal</strong>
-            <div style="font-size:.83rem;color:#CBD5E1;">Staff OTP Login: <code>9999999999</code> (Admin) / <code>9811112222</code> (Faculty)</div>
+            <div style="font-size:.83rem;color:#CBD5E1;">Manage Batches, YouTube Lessons, Tests &amp; Student Doubts</div>
           </div>
           <a href="/admin" class="btn btn-amber">Admin Login</a>
+        </div>
+        <div style="margin-top:12px;font-size:.82rem;color:#CBD5E1;">
+          Official Channels: <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener" style="color:#5EEAD4;">YouTube</a> &bull;
+          <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener" style="color:#5EEAD4;">Telegram</a> &bull;
+          <a href="https://instagram.com/mudgalbiology" target="_blank" rel="noopener" style="color:#5EEAD4;">@mudgalbiology</a>
         </div>
       </div>
     </div>
@@ -67,16 +79,58 @@
 
   <section id="exams" class="section">
     <div class="container">
-      <h2 style="margin:0 0 6px;color:var(--navy);">Exam Categories</h2>
-      <p style="margin:0 0 24px;color:var(--slate);">Structured learning paths tailored for Biology, Medical, and Government Exams.</p>
+      <h2 style="margin:0 0 6px;color:var(--navy);">Target Exams on Mudgal Biology</h2>
+      <p style="margin:0 0 24px;color:var(--slate);">Exam-oriented Biology preparation from a real RPSC achiever — simple, relevant, and result-driven.</p>
       <div id="examGrid" class="grid-4"><div class="card">Loading exams...</div></div>
+    </div>
+  </section>
+
+  <section id="videos" class="section" style="padding-top:0;">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:22px;">
+        <div>
+          <h2 style="margin:0 0 6px;color:var(--navy);">Featured Lectures from @MUDGALBIOLOGY</h2>
+          <p style="margin:0;color:var(--slate);">Watch free Graduation Biology, RPSC PYQs &amp; GEMS Mentorship classes straight from our YouTube channel.</p>
+        </div>
+        <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener" class="btn btn-navy">Subscribe on YouTube &rarr;</a>
+      </div>
+      <div class="grid-4">
+        <div class="yt-card">
+          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/7t_IjBOSF1w?rel=0" title="RPSC 2nd Grade Science 2027 GEMS Mentorship" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-body">
+            <div><span class="yt-tag">GEMS Strategy</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">RPSC 2nd Grade Science 2027 | GEMS Mentorship &amp; Test Series</h3></div>
+            <a href="https://www.youtube.com/watch?v=7t_IjBOSF1w" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
+          </div>
+        </div>
+        <div class="yt-card">
+          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/XfB-yCqwxo8?rel=0" title="Circulation in Vertebrates Complete Lecture" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-body">
+            <div><span class="yt-tag">Graduation Biology</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Circulation in Vertebrates Complete Lecture | RPSC 2nd Grade</h3></div>
+            <a href="https://www.youtube.com/watch?v=XfB-yCqwxo8" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
+          </div>
+        </div>
+        <div class="yt-card">
+          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/6F3-zdr6-AM?rel=0" title="Nervous System in Vertebrates" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-body">
+            <div><span class="yt-tag">Graduation Biology</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Nervous System in Vertebrates | Graduation Biology Series</h3></div>
+            <a href="https://www.youtube.com/watch?v=6F3-zdr6-AM" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
+          </div>
+        </div>
+        <div class="yt-card">
+          <iframe class="yt-frame" src="https://www.youtube-nocookie.com/embed/HoMQLU1ucks?rel=0" title="Types of DNA Polymerase RPSC PYQs" loading="lazy" allowfullscreen></iframe>
+          <div class="yt-body">
+            <div><span class="yt-tag">RPSC PYQs</span><h3 style="margin:8px 0 4px;font-size:1rem;color:var(--navy);">Types of DNA Polymerase | High-Yield RPSC PYQ Concepts</h3></div>
+            <a href="https://www.youtube.com/watch?v=HoMQLU1ucks" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">Watch on YouTube</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <section id="courses" class="section" style="padding-top:0;">
     <div class="container">
-      <h2 style="margin:0 0 6px;color:var(--navy);">Featured Batches on Mudgal Biology</h2>
-      <p style="margin:0 0 24px;color:var(--slate);">Preview free demo lessons or enroll via server-verified checkout.</p>
+      <h2 style="margin:0 0 6px;color:var(--navy);">Structured Batches &amp; GEMS Test Series</h2>
+      <p style="margin:0 0 24px;color:var(--slate);">Preview free demo lectures inside the Student App or enroll with verified checkout.</p>
       <div id="courseGrid" class="grid-4"><div class="card">Loading batches...</div></div>
     </div>
   </section>
@@ -85,17 +139,20 @@
     <div class="footer-grid">
       <div>
         <h4>Mudgal Biology</h4>
-        <p style="margin:0;color:#CBD5E1;">Affordable, structured Biology &amp; Government Exam preparation for aspirants across India.</p>
+        <p style="margin:0;color:#CBD5E1;">Har topic ko simple banake padhate hain — RPSC 1st &amp; 2nd Grade Biology, URATPG &amp; NEET (Bio Focused) by Hemant Mudgal.</p>
       </div>
       <div>
         <h4>Portals</h4>
         <a href="/app">Student Web App</a>
         <a href="/admin">Admin &amp; Faculty Portal</a>
-        <a href="/swagger">REST API Docs (OpenAPI)</a>
+        <a href="/#videos">Free YouTube Lectures</a>
       </div>
       <div>
-        <h4>Company &amp; Help</h4>
-        <a href="/about">About Us</a>
+        <h4>Connect</h4>
+        <a href="https://www.youtube.com/@MUDGALBIOLOGY" target="_blank" rel="noopener">YouTube (@MUDGALBIOLOGY)</a>
+        <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener">Telegram (t.me/MudgalBiologyT)</a>
+        <a href="https://instagram.com/mudgalbiology" target="_blank" rel="noopener">Instagram (@mudgalbiology)</a>
+        <a href="/about">About Hemant Mudgal</a>
         <a href="/contact">Contact &amp; Support</a>
       </div>
       <div>
@@ -106,7 +163,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>&copy; 2026 Mudgal Biology. All rights reserved.</span>
+      <span>&copy; 2026 Mudgal Biology (Hemant Mudgal). All rights reserved.</span>
       <span>Protected by JWT Auth, Role-Based Access Control &amp; Signed Media URLs.</span>
     </div>
   </footer>

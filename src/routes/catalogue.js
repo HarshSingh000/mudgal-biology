@@ -136,11 +136,11 @@ export function createCatalogueRouter(db) {
 
   router.get('/flashcards', requireAuth, asyncHandler((_req, res) => {
     res.json([
-      { id: 1, subject: 'Botany', topic: 'Cell Biology', front: 'Which organelle is semi-autonomous and contains 70S ribosomes & circular DNA?', back: 'Mitochondria and Chloroplasts (both follow endosymbiotic theory).' },
-      { id: 2, subject: 'Zoology', topic: 'Human Physiology', front: 'What is the normal stroke volume and cardiac output of a healthy human heart?', back: 'Stroke volume ≈ 70 mL/beat; Cardiac output = 70 × 72 ≈ 5040 mL (~5 L/min).' },
-      { id: 3, subject: 'Genetics', topic: 'Molecular Basis', front: 'Which enzyme unwinds the DNA double helix during replication?', back: 'DNA Helicase breaks hydrogen bonds between complementary base pairs.' },
-      { id: 4, subject: 'General Science', topic: 'Vitamins', front: 'Deficiency of which vitamin causes Pernicious Anaemia?', back: 'Vitamin B12 (Cyanocobalamin), essential for RBC maturation.' },
-      { id: 5, subject: 'Polity', topic: 'Constitution', front: 'Which Article deals with Right to Constitutional Remedies (Heart & Soul)?', back: 'Article 32 (Habeas Corpus, Mandamus, Prohibition, Certiorari, Quo Warranto).' }
+      { id: 1, subject: 'Plant Physiology', topic: 'Krebs Cycle (RPSC 2018 PYQ)', front: 'At which step in the Krebs cycle is FADH2 formed instead of NADH?', back: 'Succinate → Fumarate (catalyzed by succinate dehydrogenase on the inner mitochondrial membrane).' },
+      { id: 2, subject: 'Molecular Biology', topic: 'DNA Replication (RPSC PYQ)', front: 'Which DNA Polymerase in prokaryotes removes RNA primers via 5\'→3\' exonuclease activity?', back: 'DNA Polymerase I (Kornberg enzyme); DNA Polymerase III is the primary replicative enzyme.' },
+      { id: 3, subject: 'Graduation Biology', topic: 'Circulation in Animals', front: 'Which invertebrate phylum shows a closed circulatory system?', back: 'Annelida (e.g., Earthworm) and Cephalopod molluscs; Arthropods & most Molluscs have open circulation.' },
+      { id: 4, subject: 'Genetics', topic: 'Mendelian Inheritance (RPSC PYQ)', front: 'What is the F2 phenotypic ratio of a classic Mendelian dihybrid cross?', back: '9 : 3 : 3 : 1 (due to Law of Independent Assortment).' },
+      { id: 5, subject: 'Human Physiology', topic: 'Cardiac Cycle & ECG', front: 'Which wave in a standard ECG represents ventricular depolarization?', back: 'The QRS complex represents ventricular depolarization; P-wave = atrial depolarization; T-wave = ventricular repolarization.' }
     ]);
   }));
 
