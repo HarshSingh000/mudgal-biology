@@ -30,7 +30,13 @@
     .yt-frame { width: 100%; height: 100%; border: 0; display: block; }
     .yt-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: space-between; }
     .yt-tag { font-size: .74rem; font-weight: 700; color: #B91C1C; background: #FEE2E2; padding: 3px 9px; border-radius: 999px; align-self: flex-start; }
-    @media (max-width: 840px) { .hero-grid { grid-template-columns: 1fr; } }
+    .book-card { background: var(--surface); border: 2px solid rgba(20,184,166,.28); border-radius: 20px; padding: 28px; box-shadow: 0 14px 36px rgba(20,33,61,.08); display: grid; grid-template-columns: 1fr 1.05fr; gap: 30px; align-items: center; }
+    .book-cover-img { width: 100%; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 10px 26px rgba(15,23,42,.12); display: block; }
+    .book-points { list-style: none; padding: 0; margin: 14px 0 18px; display: grid; gap: 8px; }
+    .book-points li { font-weight: 600; color: var(--text); font-size: .95rem; }
+    .btn-wa { background: #16A34A; color: #fff; }
+    .btn-wa:hover { background: #15803D; color: #fff; }
+    @media (max-width: 840px) { .hero-grid, .book-card { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -40,6 +46,7 @@
       <nav class="nav-links">
         <a href="/" class="nav-link active">Home</a>
         <a href="/mentorship" class="nav-link">Mentorship Programs</a>
+        <a href="/#book" class="nav-link">Special Book</a>
         <a href="/#videos" class="nav-link">YouTube Lectures</a>
         <a href="/#courses" class="nav-link">Batches</a>
         <a href="/about" class="nav-link">About Hemant Sir</a>
@@ -173,6 +180,43 @@
     </div>
   </section>
 
+  <section id="book" class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="book-card">
+        <div>
+          <img src="/assets/book-cover.jpg" alt="RPSC 2nd Grade Science (जीव विज्ञान) Special Book by Hemant Mudgal" class="book-cover-img" loading="lazy" />
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+            <a href="/assets/rpsc-2nd-grade-biology-book-demo.pdf" target="_blank" rel="noopener" class="btn btn-navy" style="flex:1;">📄 Read 30-Page Demo PDF</a>
+            <a href="/assets/rpsc-2nd-grade-biology-book-demo.pdf" download="Mudgal-Biology-RPSC-2nd-Grade-Demo.pdf" class="btn btn-primary">⬇ Download PDF</a>
+          </div>
+        </div>
+        <div>
+          <span class="exam-code">📚 Official Publication &bull; 2016–2025 PYQs</span>
+          <h2 style="margin:0 0 8px;color:var(--navy);">RPSC 2nd Grade Science (जीव विज्ञान) – Special Book</h2>
+          <p style="margin:0 0 12px;color:var(--slate);">RPSC 2nd Grade Science (Biology) की तैयारी करने वाले सभी विद्यार्थियों के लिए यह पुस्तक तैयार की गई है। यह पुस्तक <strong>2016–2025</strong> तक के Previous Year Questions और महत्वपूर्ण Practice Questions को ध्यान में रखकर बनाई गई है।</p>
+          <ul class="book-points">
+            <li>✔️ 1500+ PYQs &amp; Practice Questions (with Detailed Explanations)</li>
+            <li>✔️ 180+ Science Teaching Method Questions</li>
+            <li>✔️ Hindi + English (Bilingual Content)</li>
+            <li>✔️ Exam Oriented Explanation &amp; Unit-wise Important Questions</li>
+          </ul>
+          <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:.88rem;color:var(--slate);">
+            <strong style="color:var(--navy);">📄 Demo PDF (30 Pages):</strong> ऊपर दिए गए Demo PDF को देखकर आप पुस्तक के bilingual content और format को समझ सकते हैं।<br/>
+            <span style="display:inline-block;margin-top:6px;">Author: <strong>Hemant Mudgal</strong> (Senior Teacher Science) &bull; Reader's Corner Publication</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="https://wa.me/918949073931?text=Hello%20Hemant%20Sir%2C%20I%20want%20to%20order%20the%20RPSC%202nd%20Grade%20Science%20(Biology)%20Special%20Book%20by%20Direct%20Parcel." target="_blank" rel="noopener" class="btn btn-wa">💬 WhatsApp Direct Parcel (8949073931) 📦</a>
+            <a href="https://dl.flipkart.com/s/e_C7MdNNNN" target="_blank" rel="noopener" class="btn btn-amber">🛒 Buy on Flipkart</a>
+          </div>
+          <div style="margin-top:12px;font-size:.84rem;color:var(--slate);">
+            🎥 <a href="https://youtube.com/@mudgalbiology?si=aQOJ8NwrAMAVPYZC" target="_blank" rel="noopener">YouTube (@mudgalbiology)</a> &bull;
+            📲 <a href="https://t.me/MudgalBiologyT" target="_blank" rel="noopener">Telegram (t.me/MudgalBiologyT)</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <div class="footer-grid">
       <div>
@@ -182,6 +226,7 @@
       <div>
         <h4>Portals</h4>
         <a href="/mentorship">Mentorship (GEMS &amp; STF)</a>
+        <a href="/#book">RPSC Biology Special Book</a>
         <a href="/app">Student Web App</a>
         <a href="/admin">Admin &amp; Faculty Portal</a>
         <a href="/#videos">Free YouTube Lectures</a>
