@@ -40,7 +40,7 @@ async function login(phone) {
 }
 
 test('Public pages return 200 and protected endpoints require auth', async () => {
-  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health']) {
+  for (const p of ['/', '/about', '/privacy', '/terms', '/refund', '/contact', '/app', '/admin', '/health', '/assets/logo.jpg']) {
     const r = await fetch(`${baseUrl}${p}`);
     assert.equal(r.status, 200, `Expected 200 for ${p}`);
   }

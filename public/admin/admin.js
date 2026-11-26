@@ -58,7 +58,7 @@ const admin = {
         <main class="content">
           <div class="card" style="max-width:460px;margin:40px auto;">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <div class="brand-mark">MB</div>
+              <img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" />
               <span class="badge">Mudgal Biology</span>
             </div>
             <h2 style="margin:0 0 6px;">Admin &amp; Faculty Console</h2>
@@ -87,13 +87,13 @@ const admin = {
 
     root.innerHTML = `
       <div class="mobile-header">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:800;"><span class="brand-mark">MB</span> Mudgal Biology Admin</div>
+        <div style="display:flex;align-items:center;gap:8px;font-weight:800;"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /> Mudgal Biology Admin</div>
         <button class="hamburger" onclick="admin.toggleMenu()">☰ Menu</button>
       </div>
       <div id="adminBackdrop" class="backdrop" onclick="admin.toggleMenu()"></div>
       <div class="admin-shell">
         <aside id="adminSide" class="side">
-          <div class="brand"><div class="brand-mark">MB</div><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">Admin Console</div></div></div>
+          <div class="brand"><img src="/assets/logo.jpg" alt="Mudgal Biology Logo" class="brand-logo" /><div>Mudgal Biology<div style="font-size:.72rem;font-weight:500;color:#94A3B8;">Admin Console</div></div></div>
           <button class="${this.tab==='dashboard'?'active':''}" onclick="admin.navigate('dashboard')">📊 Dashboard</button>
           <button class="${this.tab==='catalogue'?'active':''}" onclick="admin.navigate('catalogue')">📚 Courses &amp; Curriculum</button>
           <button class="${this.tab==='tests'?'active':''}" onclick="admin.navigate('tests')">📝 Mock Tests &amp; Live</button>
